@@ -31,7 +31,7 @@ defaultContentLanguage = "en"
 # disableLanguages = ['pir']
 
 # the site's title of this showcase; you should change this ;-)
-title = "Kubernetes pocket guide"
+title = "Kubernetes pocket guide by Ansil"
 
 [outputs]
   # add JSON to the home to support Lunr search; This is a mandatory setting
