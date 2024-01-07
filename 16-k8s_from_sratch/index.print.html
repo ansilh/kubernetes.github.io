@@ -1,0 +1,771 @@
+<!doctype html><html lang=en dir=ltr><head><meta charset=utf-8><meta name=viewport content="height=device-height,width=device-width,initial-scale=1,minimum-scale=1"><meta name=generator content="Hugo 0.121.1"><meta name=generator content="Relearn 5.23.2+tip"><meta name=robots content="noindex, nofollow, noarchive, noimageindex"><meta name=description content="Kubernetes pocket gude and more"><meta name=author content="Ansil H"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://kubernetes.ansilh.com/images/hero.png"><meta name=twitter:title content="K8S From Scratch :: Hugo Relearn Theme"><meta name=twitter:description content="Kubernetes pocket gude and more"><meta property="og:title" content="K8S From Scratch :: Hugo Relearn Theme"><meta property="og:description" content="Kubernetes pocket gude and more"><meta property="og:type" content="website"><meta property="og:url" content="https://kubernetes.ansilh.com/16-k8s_from_sratch/index.html"><meta property="og:image" content="https://kubernetes.ansilh.com/images/hero.png"><meta property="og:site_name" content="Hugo Relearn Theme"><title>K8S From Scratch :: Hugo Relearn Theme</title>
+<link href=../images/logo.svg?1704645242 rel=icon type=image/svg+xml><link href=../css/fontawesome-all.min.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../css/fontawesome-all.min.css?1704645243 rel=stylesheet></noscript><link href=../css/nucleus.css?1704645243 rel=stylesheet><link href=../css/auto-complete.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../css/auto-complete.css?1704645243 rel=stylesheet></noscript><link href=../css/perfect-scrollbar.min.css?1704645243 rel=stylesheet><link href=../css/fonts.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../css/fonts.css?1704645243 rel=stylesheet></noscript><link href=../css/theme.css?1704645243 rel=stylesheet><link href=../css/theme-neon.css?1704645243 rel=stylesheet id=R-variant-style><link href=../css/chroma-neon.css?1704645243 rel=stylesheet id=R-variant-chroma-style><link href=../css/variant.css?1704645243 rel=stylesheet><link href=../css/print.css?1704645243 rel=stylesheet media=print><link href=../css/format-print.css?1704645243 rel=stylesheet><link href=../css/ie.css?1704645243 rel=stylesheet><script src=../js/url.js?1704645243></script><script src=../js/variant.js?1704645243></script><script>window.index_js_url="../index.search.js";var root_url="../",baseUri=root_url.replace(/\/$/,"");window.relearn=window.relearn||{},window.relearn.baseUriFull="https://kubernetes.ansilh.com/",window.relearn.themeVariantModifier="",window.variants&&variants.init(["neon"]),window.T_Copy_to_clipboard=`Copy to clipboard`,window.T_Copied_to_clipboard=`Copied to clipboard!`,window.T_Copy_link_to_clipboard=`Copy link to clipboard`,window.T_Link_copied_to_clipboard=`Copied link to clipboard!`,window.T_Reset_view=`Reset view`,window.T_View_reset=`View reset!`,window.T_No_results_found=`No results found for "{0}"`,window.T_N_results_found=`{1} results found for "{0}"`</script><style>#R-body img.bg-white{background-color:#fff}</style></head><body class="mobile-support print disableInlineCopyToClipboard" data-url=../16-k8s_from_sratch/index.html><div id=R-body class=default-animation><div id=R-body-overlay></div><nav id=R-topbar><div class=topbar-wrapper><div class=topbar-sidebar-divider></div><div class="topbar-area topbar-area-start" data-area=start><div class="topbar-button topbar-button-sidebar" data-content-empty=disable data-width-s=show data-width-m=hide data-width-l=hide><button class=topbar-control onclick=toggleNav() type=button title="Menu (CTRL+ALT+n)"><i class="fa-fw fas fa-bars"></i></button></div></div><ol class="topbar-breadcrumbs breadcrumbs highlightable" itemscope itemtype=http://schema.org/BreadcrumbList><li itemscope itemtype=https://schema.org/ListItem itemprop=itemListElement><span itemprop=name>K8S From Scratch</span><meta itemprop=position content="1"></li></ol><div class="topbar-area topbar-area-end" data-area=end></div></div></nav><div id=R-main-overlay></div><main id=R-body-inner class="highlightable chapter narrow" tabindex=-1><div class=flex-block-wrapper><article class=chapter><header class=headline></header><div class=article-subheading>Chapter 16</div><h1 id=k8s-from-scratch>K8S From Scratch</h1><p>We will build a kubernetes cluster from scratch</p><footer class=footline></footer></article><section><h1 class=a11y-only>Subsections of K8S From Scratch</h1><article class=default><header class=headline></header><h1 id=api-access-control>API Access Control</h1><p>Users access the API using kubectl, client libraries, or by making REST requests. Both human users and Kubernetes service accounts can be authorized for API access. When a request reaches the API, it goes through several stages, illustrated in the following diagram:</p><p><a href=#R-image-7335db9339e2286da72df87a7940a449 class=lightbox-link><img src="../16-k8s_from_sratch/01-api-access-controll/auth.jpg?class=shadow&amp;width=80pc" alt=Auth class="figure-image bg-white border lightbox noshadow" style=height:auto;width:80pc loading=lazy></a>
+<a href=javascript:history.back(); class=lightbox-back id=R-image-7335db9339e2286da72df87a7940a449><img src="../16-k8s_from_sratch/01-api-access-controll/auth.jpg?class=shadow&amp;width=80pc" alt=Auth class="lightbox-image bg-white border lightbox noshadow" loading=lazy></a></p><h3 id=authentication>Authentication</h3><p>Once TLS is established, the HTTP request moves to the Authentication step. This is shown as step 1 in the diagram.</p><p>We use X509 Client Certs for authentication.</p><p>When a client certificate is presented and verified, the common name (CN) of the subject is used as the user name for the request.</p><p>Client certificates can also indicate a user’s group memberships using the certificate’s organization fields (O).
+To include multiple group memberships for a user, include multiple organization fields in the certificate.</p><p>While Kubernetes uses <code>usernames</code> for access control decisions and in request logging, it does not have a user object nor does it store usernames or other information about users in its object store.</p><h3 id=authorization>Authorization</h3><p>After the request is authenticated as coming from a specific user, the request must be authorized. This is shown as step 2 in the diagram.</p><p>A request must include the username of the requester, the requested action, and the object affected by the action. The request is authorized if an <strong><code>existing role and role mapping</code></strong> declares that the user has permissions to complete the requested action.</p><h3 id=admission-control>Admission Control</h3><p>Admission Control Modules are software modules that can modify or reject requests. This is shown as step 3 in the diagram.
+In addition to rejecting objects, admission controllers can also set complex defaults for fields.
+Once a request passes all admission controllers, it is validated using the validation routines for the corresponding API object, and then written to the object store (shown as step 4).</p><p>Example of an <a href=https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#alwayspullimages target=_blank>Admission Controller is here</a></p><footer class=footline></footer></article><article class=default><header class=headline></header><h1 id=pre-requisites>Pre-requisites</h1><ul><li>Install an Ubuntu 16.04 VM and create 4 clones from it.</li><li>Make sure to create a user called <code>k8s</code> which will be used in upcoming steps.</li><li>Names should contain your initials for identification purpose if you are using a shared environment.</li><li>Do not change any VM parameters except name while cloning.</li><li>Once cloning completes , start all VMs.</li><li>Make sure to give the hostname with prefix <code>k8s-master-</code> for Master and <code>k8s-worker-</code> for worker
+If you miss this , then the scripts/command may fail down the line.</li><li>Create a shell script <code>init.sh</code> on each VM and execute it as mentioned below.</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>cat <span class=s>&lt;&lt;EOF &gt;init.sh
+</span></span></span><span class=line><span class=cl><span class=s>#!/usr/bin/env bash
+</span></span></span><span class=line><span class=cl><span class=s>disable_ipv6(){
+</span></span></span><span class=line><span class=cl><span class=s>echo &#34;[INFO] Disabling IPv6&#34;
+</span></span></span><span class=line><span class=cl><span class=s> sysctl -w net.ipv6.conf.all.disable_ipv6=1
+</span></span></span><span class=line><span class=cl><span class=s> sysctl -w net.ipv6.conf.default.disable_ipv6=1
+</span></span></span><span class=line><span class=cl><span class=s> sysctl -w net.ipv6.conf.lo.disable_ipv6=1
+</span></span></span><span class=line><span class=cl><span class=s>
+</span></span></span><span class=line><span class=cl><span class=s> cat &lt;&lt;EOF</span> &gt;&gt;/etc/sysctl.conf
+</span></span><span class=line><span class=cl>net.ipv6.conf.all.disable_ipv6 <span class=o>=</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl>net.ipv6.conf.default.disable_ipv6 <span class=o>=</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl>net.ipv6.conf.lo.disable_ipv6 <span class=o>=</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl>EOF
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>regenerate_uuid<span class=o>(){</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;[INFO] Regenerating machine UUID&#34;</span>
+</span></span><span class=line><span class=cl> rm /etc/machine-id /var/lib/dbus/machine-id
+</span></span><span class=line><span class=cl> systemd-machine-id-setup
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>regenerate_ssh_keys<span class=o>(){</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;[INFO] Regenerating SSH Keys&#34;</span>
+</span></span><span class=line><span class=cl> /bin/rm -v /etc/ssh/ssh_host_*
+</span></span><span class=line><span class=cl> dpkg-reconfigure openssh-server
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>regenerate_iscsi_iqn<span class=o>(){</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;[INFO] Changing iSCSI InitiatorName&#34;</span>
+</span></span><span class=line><span class=cl> <span class=nb>echo</span> <span class=s2>&#34;InitiatorName=iqn.1993-08.org.debian:01:</span><span class=k>$(</span>openssl rand -hex 4<span class=k>)</span><span class=s2>&#34;</span> &gt;/etc/iscsi/initiatorname.iscsi
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>disable_ipv6
+</span></span><span class=line><span class=cl>regenerate_uuid
+</span></span><span class=line><span class=cl>regenerate_ssh_keys
+</span></span><span class=line><span class=cl>regenerate_iscsi_iqn
+</span></span><span class=line><span class=cl>EOF</span></span></code></pre></div><ul><li>Give execution permission and execute it using <code>sudo</code></li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ chmod <span class=m>755</span> init.sh
+</span></span><span class=line><span class=cl>$ sudo ./init.sh</span></span></code></pre></div><ul><li>Set hostname on each VMs
+eg:- For master</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ hostnamectl set-hostname k8s-master-ah-01 --static --transient</span></span></code></pre></div><ul><li>Reboot all VMs once host names were set.</li><li>Note down IP each VMs from Prism</li><li>Create /etc/hosts entries on each VM for all VMs.</li></ul><p>eg:-</p><div class="wrap-code highlight"><pre tabindex=0><code>10.136.102.232 k8s-master-ah-01
+10.136.102.116 k8s-worker-ah-01
+10.136.102.24  k8s-worker-ah-02
+10.136.102.253 k8s-worker-ah-03</code></pre></div><footer class=footline></footer></article><article class=default><header class=headline></header><h1 id=tools>Tools</h1><p>Logon to master node and follow below steps</p><h4 id=1-install-cfssl-to-generate-certificates>1. Install cfssl to generate certificates</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ wget -q --show-progress --https-only --timestamping <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  https://pkg.cfssl.org/R1.2/cfssl_linux-amd64 <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64</span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ chmod +x cfssl_linux-amd64 cfssljson_linux-amd64</span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ sudo mv cfssl_linux-amd64 /usr/local/bin/cfssl</span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ sudo mv cfssljson_linux-amd64 /usr/local/bin/cfssljson</span></span></code></pre></div><ul><li>Verification</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ cfssl version</span></span></code></pre></div><ul><li>Output</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=go>Version: 1.2.0
+</span></span></span><span class=line><span class=cl><span class=go>Revision: dev
+</span></span></span><span class=line><span class=cl><span class=go>Runtime: go1.6
+</span></span></span></code></pre></div><h4 id=2-install-kubectl>2. Install kubectl</h4><ul><li>Download <code>kubectl</code></li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>wget https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl</span></span></code></pre></div><ul><li>Make it executable and move to one of the shell <code>$PATH</code></li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ chmod +x kubectl
+</span></span><span class=line><span class=cl>$ sudo mv kubectl /usr/local/bin/</span></span></code></pre></div><ul><li>Verification</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ kubectl version --client</span></span></code></pre></div><ul><li>Output</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=go>Client Version: version.Info{Major:&#34;1&#34;, Minor:&#34;12&#34;, GitVersion:&#34;v1.12.0&#34;, GitCommit:&#34;0ed33881dc4355495f623c6f22e7dd0b7632b7c0&#34;, GitTreeState:&#34;clean&#34;, BuildDate:&#34;2018-09-27T17:05:32Z&#34;, GoVersion:&#34;go1.10.4&#34;, Compiler:&#34;gc&#34;, Platform:&#34;linux/amd64&#34;}
+</span></span></span></code></pre></div><footer class=footline></footer></article><article class=default><header class=headline></header><h1 id=ca-configuration>CA Configuration</h1><h3 id=pki-infrastructure>PKI Infrastructure</h3><p>We will provision a PKI Infrastructure using CloudFlare&rsquo;s PKI toolkit, cfssl, then use it to bootstrap a Certificate Authority,
+and generate TLS certificates for the following components: etcd, kube-apiserver, kube-controller-manager, kube-scheduler, kubelet,
+and kube-proxy.</p><h4 id=certificate-authority>Certificate Authority</h4><p><a href=#R-image-4dc6bbe7bd22b2ef220fe43d04580afd class=lightbox-link><img src="../16-k8s_from_sratch/04-certificate-ca/ca.jpg?class=shadow&amp;width=70pc" alt=CA class="figure-image bg-white border lightbox noshadow" style=height:auto;width:70pc loading=lazy></a>
+<a href=javascript:history.back(); class=lightbox-back id=R-image-4dc6bbe7bd22b2ef220fe43d04580afd><img src="../16-k8s_from_sratch/04-certificate-ca/ca.jpg?class=shadow&amp;width=70pc" alt=CA class="lightbox-image bg-white border lightbox noshadow" loading=lazy></a></p><p>In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates.</p><ul><li>Generate CA default files (To understand the structure of CA and CSR json . We will overwrite this configs in next steps)</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ cfssl print-defaults config &gt; ca-config.json
+</span></span><span class=line><span class=cl>$ cfssl print-defaults csr &gt; ca-csr.json</span></span></code></pre></div><ul><li>Modify ca-config and ca-csr to fit your requirement</li></ul><p>OR</p><ul><li>Use below commands to create ca-config and ca-csr JSON files</li></ul><p><strong>CA Configuration</strong></p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ cat <span class=s>&lt;&lt;EOF &gt;ca-config.json
+</span></span></span><span class=line><span class=cl><span class=s>{
+</span></span></span><span class=line><span class=cl><span class=s>    &#34;signing&#34;: {
+</span></span></span><span class=line><span class=cl><span class=s>        &#34;default&#34;: {
+</span></span></span><span class=line><span class=cl><span class=s>            &#34;expiry&#34;: &#34;8760h&#34;
+</span></span></span><span class=line><span class=cl><span class=s>        },
+</span></span></span><span class=line><span class=cl><span class=s>        &#34;profiles&#34;: {
+</span></span></span><span class=line><span class=cl><span class=s>            &#34;kubernetes&#34;: {
+</span></span></span><span class=line><span class=cl><span class=s>                &#34;expiry&#34;: &#34;8760h&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>                &#34;usages&#34;: [
+</span></span></span><span class=line><span class=cl><span class=s>                    &#34;signing&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>                    &#34;key encipherment&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>                    &#34;server auth&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>                    &#34;client auth&#34;
+</span></span></span><span class=line><span class=cl><span class=s>                ]
+</span></span></span><span class=line><span class=cl><span class=s>            }
+</span></span></span><span class=line><span class=cl><span class=s>        }
+</span></span></span><span class=line><span class=cl><span class=s>    }
+</span></span></span><span class=line><span class=cl><span class=s>}
+</span></span></span><span class=line><span class=cl><span class=s>EOF</span></span></span></code></pre></div><p><strong>CA CSR</strong></p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ cat <span class=s>&lt;&lt;EOF &gt;ca-csr.json
+</span></span></span><span class=line><span class=cl><span class=s>{
+</span></span></span><span class=line><span class=cl><span class=s>    &#34;CN&#34;: &#34;Kubernetes&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>    &#34;key&#34;: {
+</span></span></span><span class=line><span class=cl><span class=s>        &#34;algo&#34;: &#34;rsa&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>        &#34;size&#34;: 2048
+</span></span></span><span class=line><span class=cl><span class=s>    },
+</span></span></span><span class=line><span class=cl><span class=s>    &#34;names&#34;: [
+</span></span></span><span class=line><span class=cl><span class=s>        {
+</span></span></span><span class=line><span class=cl><span class=s>            &#34;C&#34;: &#34;IN&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>            &#34;L&#34;: &#34;KL&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>            &#34;O&#34;: &#34;Kubernetes&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>            &#34;OU&#34;: &#34;CA&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>            &#34;ST&#34;: &#34;Kerala&#34;
+</span></span></span><span class=line><span class=cl><span class=s>        }
+</span></span></span><span class=line><span class=cl><span class=s>    ]
+</span></span></span><span class=line><span class=cl><span class=s>}
+</span></span></span><span class=line><span class=cl><span class=s>EOF</span></span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ cfssl gencert -initca ca-csr.json <span class=p>|</span>cfssljson -bare ca</span></span></code></pre></div><ul><li>Output</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-ruby data-lang=ruby><span class=line><span class=cl><span class=mi>2018</span><span class=o>/</span><span class=mi>10</span><span class=o>/</span><span class=mo>01</span> <span class=mi>22</span><span class=p>:</span><span class=mo>03</span><span class=p>:</span><span class=mi>14</span> <span class=o>[</span><span class=no>INFO</span><span class=o>]</span> <span class=n>generating</span> <span class=n>a</span> <span class=kp>new</span> <span class=no>CA</span> <span class=n>key</span> <span class=ow>and</span> <span class=n>certificate</span> <span class=n>from</span> <span class=no>CSR</span>
+</span></span><span class=line><span class=cl><span class=mi>2018</span><span class=o>/</span><span class=mi>10</span><span class=o>/</span><span class=mo>01</span> <span class=mi>22</span><span class=p>:</span><span class=mo>03</span><span class=p>:</span><span class=mi>14</span> <span class=o>[</span><span class=no>INFO</span><span class=o>]</span> <span class=n>generate</span> <span class=n>received</span> <span class=n>request</span>
+</span></span><span class=line><span class=cl><span class=mi>2018</span><span class=o>/</span><span class=mi>10</span><span class=o>/</span><span class=mo>01</span> <span class=mi>22</span><span class=p>:</span><span class=mo>03</span><span class=p>:</span><span class=mi>14</span> <span class=o>[</span><span class=no>INFO</span><span class=o>]</span> <span class=n>received</span> <span class=no>CSR</span>
+</span></span><span class=line><span class=cl><span class=mi>2018</span><span class=o>/</span><span class=mi>10</span><span class=o>/</span><span class=mo>01</span> <span class=mi>22</span><span class=p>:</span><span class=mo>03</span><span class=p>:</span><span class=mi>14</span> <span class=o>[</span><span class=no>INFO</span><span class=o>]</span> <span class=n>generating</span> <span class=ss>key</span><span class=p>:</span> <span class=n>rsa</span><span class=o>-</span><span class=mi>2048</span>
+</span></span><span class=line><span class=cl><span class=mi>2018</span><span class=o>/</span><span class=mi>10</span><span class=o>/</span><span class=mo>01</span> <span class=mi>22</span><span class=p>:</span><span class=mo>03</span><span class=p>:</span><span class=mi>14</span> <span class=o>[</span><span class=no>INFO</span><span class=o>]</span> <span class=n>encoded</span> <span class=no>CSR</span>
+</span></span><span class=line><span class=cl><span class=mi>2018</span><span class=o>/</span><span class=mi>10</span><span class=o>/</span><span class=mo>01</span> <span class=mi>22</span><span class=p>:</span><span class=mo>03</span><span class=p>:</span><span class=mi>14</span> <span class=o>[</span><span class=no>INFO</span><span class=o>]</span> <span class=n>signed</span> <span class=n>certificate</span> <span class=n>with</span> <span class=n>serial</span> <span class=n>number</span> <span class=mi>621260968886516247086480084671432552497699065843</span></span></span></code></pre></div><ul><li>ca.pem , ca-key.pem, ca.csr files will be created , but we need only ca.pem and ca-key.pem</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ ls -lrt ca*</span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0><code>-rw-rw-r-- 1 k8s k8s  385 Oct  1 21:53 ca-config.json
+-rw-rw-r-- 1 k8s k8s  262 Oct  1 21:56 ca-csr.json
+-rw-rw-r-- 1 k8s k8s 1350 Oct  1 22:03 ca.pem
+-rw------- 1 k8s k8s 1679 Oct  1 22:03 ca-key.pem
+-rw-r--r-- 1 k8s k8s  997 Oct  1 22:03 ca.csr</code></pre></div><footer class=footline></footer></article><article class=default><header class=headline></header><h1 id=client-and-server-certificates>Client and Server Certificates</h1><p>In this section you will generate client and server certificates for each Kubernetes component and a client certificate for
+the Kubernetes admin user.</p><h3 id=the-admin-client-certificate-this-will-be-used-for-kubectl-command>The Admin Client Certificate (This will be used for <code>kubectl</code> command)</h3><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=o>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>cat &gt; admin-csr.json <span class=s>&lt;&lt;EOF
+</span></span></span><span class=line><span class=cl><span class=s>{
+</span></span></span><span class=line><span class=cl><span class=s>  &#34;CN&#34;: &#34;admin&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>  &#34;key&#34;: {
+</span></span></span><span class=line><span class=cl><span class=s>    &#34;algo&#34;: &#34;rsa&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>    &#34;size&#34;: 2048
+</span></span></span><span class=line><span class=cl><span class=s>  },
+</span></span></span><span class=line><span class=cl><span class=s>  &#34;names&#34;: [
+</span></span></span><span class=line><span class=cl><span class=s>    {
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;C&#34;: &#34;IN&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;L&#34;: &#34;Bangalore&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;O&#34;: &#34;system:masters&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;OU&#34;: &#34;Kubernetes from Scratch&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;ST&#34;: &#34;Karnataka&#34;
+</span></span></span><span class=line><span class=cl><span class=s>    }
+</span></span></span><span class=line><span class=cl><span class=s>  ]
+</span></span></span><span class=line><span class=cl><span class=s>}
+</span></span></span><span class=line><span class=cl><span class=s>EOF</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ cfssl gencert <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -ca<span class=o>=</span>ca.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -ca-key<span class=o>=</span>ca-key.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -config<span class=o>=</span>ca-config.json <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -profile<span class=o>=</span>kubernetes <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  admin-csr.json <span class=p>|</span> cfssljson -bare admin
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>}</span></span></span></code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=go>admin-key.pem
+</span></span></span><span class=line><span class=cl><span class=go>admin.pem
+</span></span></span></code></pre></div><h3 id=the-kubelet-client-certificates>The Kubelet Client Certificates</h3><p>Kubernetes uses a <a href=https://kubernetes.io/docs/admin/authorization/node/ target=_blank>special-purpose authorization mode</a> called Node Authorizer, that specifically authorizes API requests made by <a href=https://kubernetes.io/docs/concepts/overview/components/#kubelet target=_blank>Kubelets</a>. In order to be authorized by the Node Authorizer, Kubelets must use a credential that identifies them as being in the <code>system:nodes</code> group, with a username of <code>system:node:&lt;nodeName></code>. In this section you will create a certificate for each Kubernetes worker node that meets the Node Authorizer requirements.</p><p>Generate a certificate and private key for each Kubernetes worker node:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=k>for</span> instance in <span class=k>$(</span>cat /etc/hosts<span class=p>|</span> grep k8s <span class=p>|</span>awk <span class=s1>&#39;{print $2}&#39;</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>cat &gt; <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>-csr.json <span class=s>&lt;&lt;EOF
+</span></span></span><span class=line><span class=cl><span class=s>{
+</span></span></span><span class=line><span class=cl><span class=s>  &#34;CN&#34;: &#34;system:node:${instance}&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>  &#34;key&#34;: {
+</span></span></span><span class=line><span class=cl><span class=s>    &#34;algo&#34;: &#34;rsa&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>    &#34;size&#34;: 2048
+</span></span></span><span class=line><span class=cl><span class=s>  },
+</span></span></span><span class=line><span class=cl><span class=s>  &#34;names&#34;: [
+</span></span></span><span class=line><span class=cl><span class=s>    {
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;C&#34;: &#34;IN&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;L&#34;: &#34;Bangalore&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;O&#34;: &#34;system:masters&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;OU&#34;: &#34;Kubernetes from Scratch&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;ST&#34;: &#34;Karnataka&#34;
+</span></span></span><span class=line><span class=cl><span class=s>    }
+</span></span></span><span class=line><span class=cl><span class=s>  ]
+</span></span></span><span class=line><span class=cl><span class=s>}
+</span></span></span><span class=line><span class=cl><span class=s>EOF</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>cfssl gencert <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -ca<span class=o>=</span>ca.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -ca-key<span class=o>=</span>ca-key.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -config<span class=o>=</span>ca-config.json <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -hostname<span class=o>=</span><span class=si>${</span><span class=nv>instance</span><span class=si>}</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -profile<span class=o>=</span>kubernetes <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>-csr.json <span class=p>|</span> cfssljson -bare <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>
+</span></span><span class=line><span class=cl><span class=k>done</span></span></span></code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt k8s*
+-rw-rw-r-- 1 k8s k8s  268 Feb  2 16:54 k8s-master-ah-01-csr.json
+-rw-rw-r-- 1 k8s k8s  268 Feb  2 16:54 k8s-worker-ah-01-csr.json
+-rw-rw-r-- 1 k8s k8s 1513 Feb  2 16:54 k8s-master-ah-01.pem
+-rw------- 1 k8s k8s 1679 Feb  2 16:54 k8s-master-ah-01-key.pem
+-rw-r--r-- 1 k8s k8s 1082 Feb  2 16:54 k8s-master-ah-01.csr
+-rw-rw-r-- 1 k8s k8s 1513 Feb  2 16:54 k8s-worker-ah-01.pem
+-rw------- 1 k8s k8s 1679 Feb  2 16:54 k8s-worker-ah-01-key.pem
+-rw-r--r-- 1 k8s k8s 1082 Feb  2 16:54 k8s-worker-ah-01.csr
+-rw-rw-r-- 1 k8s k8s  268 Feb  2 16:54 k8s-worker-ah-02-csr.json
+-rw-rw-r-- 1 k8s k8s  268 Feb  2 16:54 k8s-worker-ah-03-csr.json
+-rw-rw-r-- 1 k8s k8s 1513 Feb  2 16:54 k8s-worker-ah-02.pem
+-rw------- 1 k8s k8s 1679 Feb  2 16:54 k8s-worker-ah-02-key.pem
+-rw-r--r-- 1 k8s k8s 1082 Feb  2 16:54 k8s-worker-ah-02.csr
+-rw-rw-r-- 1 k8s k8s 1513 Feb  2 16:54 k8s-worker-ah-03.pem
+-rw------- 1 k8s k8s 1675 Feb  2 16:54 k8s-worker-ah-03-key.pem
+-rw-r--r-- 1 k8s k8s 1082 Feb  2 16:54 k8s-worker-ah-03.csr</code></pre></div><h3 id=the-controller-manager-client-certificate>The Controller Manager Client Certificate</h3><p>Generate the <code>kube-controller-manager</code> client certificate and private key:</p><div class="wrap-code highlight"><pre tabindex=0><code>{
+
+cat &gt; kube-controller-manager-csr.json &lt;&lt;EOF
+{
+  &#34;CN&#34;: &#34;system:kube-controller-manager&#34;,
+  &#34;key&#34;: {
+    &#34;algo&#34;: &#34;rsa&#34;,
+    &#34;size&#34;: 2048
+  },
+  &#34;names&#34;: [
+    {
+      &#34;C&#34;: &#34;IN&#34;,
+      &#34;L&#34;: &#34;Bangalore&#34;,
+      &#34;O&#34;: &#34;system:masters&#34;,
+      &#34;OU&#34;: &#34;Kubernetes from Scratch&#34;,
+      &#34;ST&#34;: &#34;Karnataka&#34;
+    }
+  ]
+}
+EOF
+
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  kube-controller-manager-csr.json | cfssljson -bare kube-controller-manager
+
+}</code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt kube-controller*
+-rw-rw-r-- 1 k8s k8s  270 Feb  2 16:55 kube-controller-manager-csr.json
+-rw-rw-r-- 1 k8s k8s 1472 Feb  2 16:55 kube-controller-manager.pem
+-rw------- 1 k8s k8s 1675 Feb  2 16:55 kube-controller-manager-key.pem
+-rw-r--r-- 1 k8s k8s 1086 Feb  2 16:55 kube-controller-manager.csr</code></pre></div><h3 id=the-kube-proxy-client-certificate>The Kube Proxy Client Certificate</h3><p>Generate the <code>kube-proxy</code> client certificate and private key:</p><div class="wrap-code highlight"><pre tabindex=0><code>{
+
+cat &gt; kube-proxy-csr.json &lt;&lt;EOF
+{
+  &#34;CN&#34;: &#34;system:kube-proxy&#34;,
+  &#34;key&#34;: {
+    &#34;algo&#34;: &#34;rsa&#34;,
+    &#34;size&#34;: 2048
+  },
+  &#34;names&#34;: [
+    {
+      &#34;C&#34;: &#34;IN&#34;,
+      &#34;L&#34;: &#34;Bangalore&#34;,
+      &#34;O&#34;: &#34;system:masters&#34;,
+      &#34;OU&#34;: &#34;Kubernetes from Scratch&#34;,
+      &#34;ST&#34;: &#34;Karnataka&#34;
+    }
+  ]
+}
+EOF
+
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  kube-proxy-csr.json | cfssljson -bare kube-proxy
+
+}</code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt kube-proxy*
+-rw-rw-r-- 1 k8s k8s  257 Feb  2 16:55 kube-proxy-csr.json
+-rw-rw-r-- 1 k8s k8s 1456 Feb  2 16:55 kube-proxy.pem
+-rw------- 1 k8s k8s 1675 Feb  2 16:55 kube-proxy-key.pem
+-rw-r--r-- 1 k8s k8s 1070 Feb  2 16:55 kube-proxy.csr</code></pre></div><h3 id=the-scheduler-client-certificate>The Scheduler Client Certificate</h3><p>Generate the <code>kube-scheduler</code> client certificate and private key:</p><div class="wrap-code highlight"><pre tabindex=0><code>{
+
+cat &gt; kube-scheduler-csr.json &lt;&lt;EOF
+{
+  &#34;CN&#34;: &#34;system:kube-scheduler&#34;,
+  &#34;key&#34;: {
+    &#34;algo&#34;: &#34;rsa&#34;,
+    &#34;size&#34;: 2048
+  },
+  &#34;names&#34;: [
+    {
+      &#34;C&#34;: &#34;IN&#34;,
+      &#34;L&#34;: &#34;Bangalore&#34;,
+      &#34;O&#34;: &#34;system:masters&#34;,
+      &#34;OU&#34;: &#34;Kubernetes from Scratch&#34;,
+      &#34;ST&#34;: &#34;Karnataka&#34;
+    }
+  ]
+}
+EOF
+
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  kube-scheduler-csr.json | cfssljson -bare kube-scheduler
+
+}</code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt kube-scheduler*
+-rw-rw-r-- 1 k8s k8s  261 Feb  2 16:56 kube-scheduler-csr.json
+-rw-rw-r-- 1 k8s k8s 1460 Feb  2 16:56 kube-scheduler.pem
+-rw------- 1 k8s k8s 1679 Feb  2 16:56 kube-scheduler-key.pem
+-rw-r--r-- 1 k8s k8s 1074 Feb  2 16:56 kube-scheduler.csr</code></pre></div><h3 id=the-kubernetes-api-server-certificate>The Kubernetes API Server Certificate</h3><p>IP address will be included in the list of subject alternative names for the Kubernetes API Server certificate. This will ensure the certificate can be validated by remote clients.</p><p>Generate the Kubernetes API Server certificate and private key:</p><div class="wrap-code highlight"><pre tabindex=0><code>{
+
+KUBERNETES_ADDRESS=&#34;$(grep k8s /etc/hosts |awk &#39;{print $1}&#39; | sed &#39;:a;N;$!ba;s/\n/,/g&#39;),172.168.0.1&#34;
+
+cat &gt; kubernetes-csr.json &lt;&lt;EOF
+{
+  &#34;CN&#34;: &#34;kubernetes&#34;,
+  &#34;key&#34;: {
+    &#34;algo&#34;: &#34;rsa&#34;,
+    &#34;size&#34;: 2048
+  },
+  &#34;names&#34;: [
+    {
+      &#34;C&#34;: &#34;IN&#34;,
+      &#34;L&#34;: &#34;Bangalore&#34;,
+      &#34;O&#34;: &#34;system:masters&#34;,
+      &#34;OU&#34;: &#34;Kubernetes from Scratch&#34;,
+      &#34;ST&#34;: &#34;Karnataka&#34;
+    }
+  ]
+}
+EOF
+
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -hostname=${KUBERNETES_ADDRESS},127.0.0.1,kubernetes.default \
+  -profile=kubernetes \
+  kubernetes-csr.json | cfssljson -bare kubernetes
+
+}</code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt kubernetes*
+-rw-rw-r-- 1 k8s k8s  240 Feb  2 17:01 kubernetes-csr.json
+-rw-rw-r-- 1 k8s k8s 1501 Feb  2 17:01 kubernetes.pem
+-rw------- 1 k8s k8s 1675 Feb  2 17:01 kubernetes-key.pem
+-rw-r--r-- 1 k8s k8s 1045 Feb  2 17:01 kubernetes.csr</code></pre></div><h2 id=the-service-account-key-pair>The Service Account Key Pair</h2><p>The Kubernetes Controller Manager leverages a key pair to generate and sign service account tokens as describe in the <a href=https://kubernetes.io/docs/admin/service-accounts-admin/ target=_blank>managing service accounts</a> documentation.</p><p>Generate the <code>service-account</code> certificate and private key:</p><div class="wrap-code highlight"><pre tabindex=0><code>{
+
+cat &gt; service-account-csr.json &lt;&lt;EOF
+{
+  &#34;CN&#34;: &#34;service-accounts&#34;,
+  &#34;key&#34;: {
+    &#34;algo&#34;: &#34;rsa&#34;,
+    &#34;size&#34;: 2048
+  },
+  &#34;names&#34;: [
+    {
+      &#34;C&#34;: &#34;IN&#34;,
+      &#34;L&#34;: &#34;Bangalore&#34;,
+      &#34;O&#34;: &#34;system:masters&#34;,
+      &#34;OU&#34;: &#34;Kubernetes from Scratch&#34;,
+      &#34;ST&#34;: &#34;Karnataka&#34;
+    }
+  ]
+}
+EOF
+
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  service-account-csr.json | cfssljson -bare service-account
+
+}</code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt service-account*
+-rw-rw-r-- 1 k8s k8s  246 Feb  2 17:02 service-account-csr.json
+-rw-rw-r-- 1 k8s k8s 1440 Feb  2 17:02 service-account.pem
+-rw------- 1 k8s k8s 1679 Feb  2 17:02 service-account-key.pem
+-rw-r--r-- 1 k8s k8s 1054 Feb  2 17:02 service-account.csr</code></pre></div><h2 id=distribute-the-client-and-server-certificates>Distribute the Client and Server Certificates</h2><p>Enable SSH key authentication from master node to all worker nodes to transfer files.</p><ul><li>Generate a key</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ ssh-keygen</span></span></code></pre></div><ul><li>Copy key to remote systems</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=k>for</span> instance in <span class=k>$(</span>grep k8s /etc/hosts <span class=p>|</span>awk <span class=s1>&#39;{print $2}&#39;</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span> <span class=o>(</span>ssh-copy-id <span class=si>${</span><span class=nv>instance</span><span class=si>}</span><span class=o>)</span><span class=p>;</span> <span class=k>done</span></span></span></code></pre></div><ul><li>Copy the appropriate certificates and private keys to each worker instance:</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=k>for</span> instance in <span class=k>$(</span>grep k8s /etc/hosts <span class=p>|</span>awk <span class=s1>&#39;{print $2}&#39;</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>  scp kubernetes-key.pem kubernetes.pem ca.pem <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>-key.pem <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>.pem <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>:~/
+</span></span><span class=line><span class=cl><span class=k>done</span></span></span></code></pre></div><p>Copy the appropriate certificates and private keys to each controller instance:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=k>for</span> instance in <span class=k>$(</span>grep master /etc/hosts <span class=p>|</span>awk <span class=s1>&#39;{print $2}&#39;</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>  scp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    service-account-key.pem service-account.pem <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>:~/
+</span></span><span class=line><span class=cl><span class=k>done</span></span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=k>for</span> instance in <span class=k>$(</span>grep k8s /etc/hosts <span class=p>|</span>awk <span class=s1>&#39;{print $2}&#39;</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>  scp /etc/hosts <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>:~/
+</span></span><span class=line><span class=cl><span class=k>done</span></span></span></code></pre></div><blockquote><p>The <code>kube-proxy</code>, <code>kube-controller-manager</code>, <code>kube-scheduler</code>, and <code>kubelet</code> client certificates will be used to generate client authentication configuration files in the next lab.</p></blockquote><footer class=footline></footer></article><article class=default><header class=headline></header><h1 id=configuration-files>Configuration Files</h1><p>In this lab you will generate <a href=https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/ target=_blank>Kubernetes configuration files</a>, also known as kubeconfigs, which enable Kubernetes clients to locate and authenticate to the Kubernetes API Servers.</p><h2 id=client-authentication-configs>Client Authentication Configs</h2><p>In this section you will generate kubeconfig files for the <code>controller manager</code>, <code>kubelet</code>, <code>kube-proxy</code>, and <code>scheduler</code> clients and the <code>admin</code> user.</p><h3 id=kubernetes-public-ip-address>Kubernetes Public IP Address</h3><p>Each kubeconfig requires a Kubernetes API Server to connect to.
+Set the KUBERNETES_PUBLIC_ADDRESS with the IP of master.</p><div class="wrap-code highlight"><pre tabindex=0><code>KUBERNETES_PUBLIC_ADDRESS=$(grep master /etc/hosts |awk &#39;{print $1}&#39;)</code></pre></div><h3 id=the-kubelet-kubernetes-configuration-file>The kubelet Kubernetes Configuration File</h3><p>When generating kubeconfig files for Kubelets the client certificate matching the Kubelet&rsquo;s node name must be used. This will ensure Kubelets are properly authorized by the Kubernetes <a href=https://kubernetes.io/docs/admin/authorization/node/ target=_blank>Node Authorizer</a>.</p><p>Generate a kubeconfig file for each worker node:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=k>for</span> instance in <span class=k>$(</span>grep k8s /etc/hosts <span class=p>|</span>awk <span class=s1>&#39;{print $2}&#39;</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>  kubectl config set-cluster kubernetes-the-hard-way <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --certificate-authority<span class=o>=</span>ca.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --embed-certs<span class=o>=</span><span class=nb>true</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --server<span class=o>=</span>https://<span class=si>${</span><span class=nv>KUBERNETES_PUBLIC_ADDRESS</span><span class=si>}</span>:6443 <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span><span class=si>${</span><span class=nv>instance</span><span class=si>}</span>.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config set-credentials system:node:<span class=si>${</span><span class=nv>instance</span><span class=si>}</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --client-certificate<span class=o>=</span><span class=si>${</span><span class=nv>instance</span><span class=si>}</span>.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --client-key<span class=o>=</span><span class=si>${</span><span class=nv>instance</span><span class=si>}</span>-key.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --embed-certs<span class=o>=</span><span class=nb>true</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span><span class=si>${</span><span class=nv>instance</span><span class=si>}</span>.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config set-context default <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --cluster<span class=o>=</span>kubernetes-the-hard-way <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --user<span class=o>=</span>system:node:<span class=si>${</span><span class=nv>instance</span><span class=si>}</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span><span class=si>${</span><span class=nv>instance</span><span class=si>}</span>.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config use-context default --kubeconfig<span class=o>=</span><span class=si>${</span><span class=nv>instance</span><span class=si>}</span>.kubeconfig
+</span></span><span class=line><span class=cl><span class=k>done</span></span></span></code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt *.kubeconfig
+-rw------- 1 k8s k8s 6472 Feb  2 17:57 k8s-master-ah-01.kubeconfig
+-rw------- 1 k8s k8s 6472 Feb  2 17:57 k8s-worker-ah-01.kubeconfig
+-rw------- 1 k8s k8s 6472 Feb  2 17:57 k8s-worker-ah-02.kubeconfig
+-rw------- 1 k8s k8s 6468 Feb  2 17:57 k8s-worker-ah-03.kubeconfig</code></pre></div><h3 id=the-kube-proxy-kubernetes-configuration-file>The kube-proxy Kubernetes Configuration File</h3><p>Generate a kubeconfig file for the <code>kube-proxy</code> service:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=o>{</span>
+</span></span><span class=line><span class=cl>  kubectl config set-cluster kubernetes-the-hard-way <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --certificate-authority<span class=o>=</span>ca.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --embed-certs<span class=o>=</span><span class=nb>true</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --server<span class=o>=</span>https://<span class=si>${</span><span class=nv>KUBERNETES_PUBLIC_ADDRESS</span><span class=si>}</span>:6443 <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span>kube-proxy.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config set-credentials system:kube-proxy <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --client-certificate<span class=o>=</span>kube-proxy.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --client-key<span class=o>=</span>kube-proxy-key.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --embed-certs<span class=o>=</span><span class=nb>true</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span>kube-proxy.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config set-context default <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --cluster<span class=o>=</span>kubernetes-the-hard-way <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --user<span class=o>=</span>system:kube-proxy <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span>kube-proxy.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config use-context default --kubeconfig<span class=o>=</span>kube-proxy.kubeconfig
+</span></span><span class=line><span class=cl><span class=o>}</span></span></span></code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ ls -lrt kube-proxy.kubeconfig
+</span></span><span class=line><span class=cl>-rw------- <span class=m>1</span> k8s k8s <span class=m>6370</span> Feb  <span class=m>2</span> 17:58 kube-proxy.kubeconfig</span></span></code></pre></div><h3 id=the-kube-controller-manager-kubernetes-configuration-file>The kube-controller-manager Kubernetes Configuration File</h3><p>Generate a kubeconfig file for the <code>kube-controller-manager</code> service:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=o>{</span>
+</span></span><span class=line><span class=cl>  kubectl config set-cluster kubernetes-the-hard-way <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --certificate-authority<span class=o>=</span>ca.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --embed-certs<span class=o>=</span><span class=nb>true</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --server<span class=o>=</span>https://127.0.0.1:6443 <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span>kube-controller-manager.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config set-credentials system:kube-controller-manager <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --client-certificate<span class=o>=</span>kube-controller-manager.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --client-key<span class=o>=</span>kube-controller-manager-key.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --embed-certs<span class=o>=</span><span class=nb>true</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span>kube-controller-manager.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config set-context default <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --cluster<span class=o>=</span>kubernetes-the-hard-way <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --user<span class=o>=</span>system:kube-controller-manager <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span>kube-controller-manager.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config use-context default --kubeconfig<span class=o>=</span>kube-controller-manager.kubeconfig
+</span></span><span class=line><span class=cl><span class=o>}</span></span></span></code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=go>~$ ls -lrt kube-controller-manager.kubeconfig
+</span></span></span><span class=line><span class=cl><span class=go>-rw------- 1 k8s k8s 6411 Feb  2 18:00 kube-controller-manager.kubeconfig
+</span></span></span></code></pre></div><h3 id=the-kube-scheduler-kubernetes-configuration-file>The kube-scheduler Kubernetes Configuration File</h3><p>Generate a kubeconfig file for the <code>kube-scheduler</code> service:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=o>{</span>
+</span></span><span class=line><span class=cl>  kubectl config set-cluster kubernetes-the-hard-way <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --certificate-authority<span class=o>=</span>ca.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --embed-certs<span class=o>=</span><span class=nb>true</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --server<span class=o>=</span>https://127.0.0.1:6443 <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span>kube-scheduler.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config set-credentials system:kube-scheduler <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --client-certificate<span class=o>=</span>kube-scheduler.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --client-key<span class=o>=</span>kube-scheduler-key.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --embed-certs<span class=o>=</span><span class=nb>true</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span>kube-scheduler.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config set-context default <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --cluster<span class=o>=</span>kubernetes-the-hard-way <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --user<span class=o>=</span>system:kube-scheduler <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span>kube-scheduler.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config use-context default --kubeconfig<span class=o>=</span>kube-scheduler.kubeconfig
+</span></span><span class=line><span class=cl><span class=o>}</span></span></span></code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt kube-scheduler.kubeconfig
+-rw------- 1 k8s k8s 6381 Feb  2 18:00 kube-scheduler.kubeconfig</code></pre></div><h3 id=the-admin-kubernetes-configuration-file>The admin Kubernetes Configuration File</h3><p>Generate a kubeconfig file for the <code>admin</code> user:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=o>{</span>
+</span></span><span class=line><span class=cl>  kubectl config set-cluster kubernetes-the-hard-way <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --certificate-authority<span class=o>=</span>ca.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --embed-certs<span class=o>=</span><span class=nb>true</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --server<span class=o>=</span>https://127.0.0.1:6443 <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span>admin.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config set-credentials admin <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --client-certificate<span class=o>=</span>admin.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --client-key<span class=o>=</span>admin-key.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --embed-certs<span class=o>=</span><span class=nb>true</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span>admin.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config set-context default <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --cluster<span class=o>=</span>kubernetes-the-hard-way <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --user<span class=o>=</span>admin <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    --kubeconfig<span class=o>=</span>admin.kubeconfig
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  kubectl config use-context default --kubeconfig<span class=o>=</span>admin.kubeconfig
+</span></span><span class=line><span class=cl><span class=o>}</span></span></span></code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt admin.kubeconfig
+-rw------- 1 k8s k8s 6317 Feb  2 18:01 admin.kubeconfig</code></pre></div><h2 id=distribute-the-kubernetes-configuration-files>Distribute the Kubernetes Configuration Files</h2><p>Copy the appropriate <code>kubelet</code> and <code>kube-proxy</code> kubeconfig files to each worker instance:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=k>for</span> instance in <span class=k>$(</span>grep k8s /etc/hosts <span class=p>|</span>awk <span class=s1>&#39;{print $2}&#39;</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>  scp <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>.kubeconfig kube-proxy.kubeconfig <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>:~/
+</span></span><span class=line><span class=cl><span class=k>done</span></span></span></code></pre></div><p>Copy the appropriate <code>kube-controller-manager</code> and <code>kube-scheduler</code> kubeconfig files to each controller instance:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=k>for</span> instance in <span class=k>$(</span>grep master /etc/hosts <span class=p>|</span>awk <span class=s1>&#39;{print $2}&#39;</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>  scp admin.kubeconfig kube-controller-manager.kubeconfig kube-scheduler.kubeconfig <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>:~/
+</span></span><span class=line><span class=cl><span class=k>done</span></span></span></code></pre></div><footer class=footline></footer></article><article class=default><header class=headline></header><h1 id=etcd-bootstrap>Etcd Bootstrap</h1><h3 id=bootstrapping-the-etcd-cluster>Bootstrapping the etcd Cluster</h3><p>Kubernetes components are stateless and store cluster state in <a href=https://github.com/coreos/etcd target=_blank>etcd</a>.
+In this lab you will bootstrap a three node etcd cluster and configure it for high availability and secure remote access.</p><h4 id=prerequisites>Prerequisites</h4><p>The commands in this lab must be run on each worker instance:
+Login to each controller instance using the <code>k8s</code> user. Example:</p><div class="wrap-code highlight"><pre tabindex=0><code>ssh k8s-worker-ah-02</code></pre></div><h4 id=running-commands-in-parallel-with-tmux>Running commands in parallel with tmux</h4><p><a href=https://github.com/tmux/tmux/wiki target=_blank>tmux</a> can be used to run commands on multiple compute instances at the same time.</p><h3 id=bootstrapping-an-etcd-cluster-member>Bootstrapping an etcd Cluster Member</h3><h4 id=copy-host-file>Copy host file.</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ sudo cp hosts /etc/hosts</span></span></code></pre></div><h4 id=download-and-install-the-etcd-binaries>Download and Install the etcd Binaries.</h4><p>Download the official etcd release binaries from the <a href=https://github.com/coreos/etcd target=_blank>coreos/etcd</a> GitHub project:</p><div class="wrap-code highlight"><pre tabindex=0><code>wget -q --show-progress --https-only --timestamping \
+  &#34;https://github.com/coreos/etcd/releases/download/v3.3.9/etcd-v3.3.9-linux-amd64.tar.gz&#34;</code></pre></div><p>Extract and install the <code>etcd</code> server and the <code>etcdctl</code> command line utility:</p><div class="wrap-code highlight"><pre tabindex=0><code>{
+  tar -xvf etcd-v3.3.9-linux-amd64.tar.gz
+  sudo mv etcd-v3.3.9-linux-amd64/etcd* /usr/local/bin/
+}</code></pre></div><h4 id=configure-the-etcd-server>Configure the etcd Server</h4><div class="wrap-code highlight"><pre tabindex=0><code>{
+  sudo mkdir -p /etc/etcd /var/lib/etcd
+  sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
+}</code></pre></div><p>The instance internal IP address will be used to serve client requests and communicate with etcd cluster peers. Retrieve the internal IP address for the current compute instance:</p><div class="wrap-code highlight"><pre tabindex=0><code>INTERNAL_IP=$(grep -w $(hostname) /etc/hosts |awk &#39;{print $1}&#39;)</code></pre></div><p>Each etcd member must have a unique name within an etcd cluster. Set the etcd name to match the hostname of the current compute instance:</p><div class="wrap-code highlight"><pre tabindex=0><code>ETCD_NAME=$(hostname -s)</code></pre></div><p>List of members</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=nv>ETCD_MEMBERS</span><span class=o>=</span><span class=k>$(</span>grep worker /etc/hosts <span class=p>|</span>awk <span class=s1>&#39;{print $2&#34;=https://&#34;$1&#34;:2380&#34;}&#39;</span> <span class=p>|</span>sed <span class=s1>&#39;:a;N;$!ba;s/\n/,/g&#39;</span><span class=k>)</span></span></span></code></pre></div><p>Create the <code>etcd.service</code> systemd unit file:</p><div class="wrap-code highlight"><pre tabindex=0><code>cat &lt;&lt;EOF | sudo tee /etc/systemd/system/etcd.service
+[Unit]
+Description=etcd
+Documentation=https://github.com/coreos
+
+[Service]
+ExecStart=/usr/local/bin/etcd \\
+  --name ${ETCD_NAME} \\
+  --cert-file=/etc/etcd/kubernetes.pem \\
+  --key-file=/etc/etcd/kubernetes-key.pem \\
+  --peer-cert-file=/etc/etcd/kubernetes.pem \\
+  --peer-key-file=/etc/etcd/kubernetes-key.pem \\
+  --trusted-ca-file=/etc/etcd/ca.pem \\
+  --peer-trusted-ca-file=/etc/etcd/ca.pem \\
+  --peer-client-cert-auth \\
+  --client-cert-auth \\
+  --initial-advertise-peer-urls https://${INTERNAL_IP}:2380 \\
+  --listen-peer-urls https://${INTERNAL_IP}:2380 \\
+  --listen-client-urls https://${INTERNAL_IP}:2379,https://127.0.0.1:2379 \\
+  --advertise-client-urls https://${INTERNAL_IP}:2379 \\
+  --initial-cluster-token etcd-cluster-0 \\
+  --initial-cluster ${ETCD_MEMBERS} \\
+  --initial-cluster-state new \\
+  --data-dir=/var/lib/etcd
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF</code></pre></div><h4 id=start-the-etcd-server>Start the etcd Server</h4><div class="wrap-code highlight"><pre tabindex=0><code>{
+  sudo systemctl daemon-reload
+  sudo systemctl enable etcd
+  sudo systemctl start etcd
+}</code></pre></div><blockquote><p>Remember to run the above commands on each controller node: <code>controller-01</code>, <code>controller-02</code>, and <code>controller-03</code>.</p></blockquote><h3 id=verification>Verification</h3><p>List the etcd cluster members:</p><div class="wrap-code highlight"><pre tabindex=0><code>sudo ETCDCTL_API=3 etcdctl member list \
+  --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/etcd/ca.pem \
+  --cert=/etc/etcd/kubernetes.pem \
+  --key=/etc/etcd/kubernetes-key.pem</code></pre></div><blockquote><p>output</p></blockquote><div class="wrap-code highlight"><pre tabindex=0><code>ff3c9dc8bc4ff6e, started, controller-01, https://192.168.78.201:2380, https://192.168.78.201:2379
+adfbdba88b62084e, started, controller-02, https://192.168.78.202:2380, https://192.168.78.202:2379
+b9a01cb565f3c5e8, started, controller-03, https://192.168.78.203:2380, https://192.168.78.203:2379</code></pre></div><footer class=footline></footer></article><article class=default><header class=headline></header><h1 id=control-plane-setup>Control Plane Setup</h1><h3 id=bootstrapping-the-kubernetes-control-plane>Bootstrapping the Kubernetes Control Plane</h3><p>In this lab you will bootstrap the Kubernetes control plane across three compute instances and configure it for high availability. You will also create an external load balancer that exposes the Kubernetes API Servers to remote clients. The following components will be installed on each node: Kubernetes API Server, Scheduler, and Controller Manager.</p><h4 id=prerequisites>Prerequisites</h4><p>The commands in this lab must be run only on master node (eg: k8s-master-ah-01)</p><div class="wrap-code highlight"><pre tabindex=0><code>ssh k8s@k8s-master-ah-01</code></pre></div><h3 id=provision-the-kubernetes-control-plane>Provision the Kubernetes Control Plane</h3><p>Create the Kubernetes configuration directory:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ sudo mkdir -p /etc/kubernetes/config</span></span></code></pre></div><h4 id=download-and-install-the-kubernetes-controller-binaries>Download and Install the Kubernetes Controller Binaries</h4><p>Download the official Kubernetes release binaries:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>wget -q --show-progress --https-only --timestamping <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  <span class=s2>&#34;https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kube-apiserver&#34;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  <span class=s2>&#34;https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kube-controller-manager&#34;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  <span class=s2>&#34;https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kube-scheduler&#34;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  <span class=s2>&#34;https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl&#34;</span></span></span></code></pre></div><p>Install the Kubernetes binaries:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=o>{</span>
+</span></span><span class=line><span class=cl>  chmod +x kube-apiserver kube-controller-manager kube-scheduler kubectl
+</span></span><span class=line><span class=cl>  sudo mv kube-apiserver kube-controller-manager kube-scheduler kubectl /usr/local/bin/
+</span></span><span class=line><span class=cl><span class=o>}</span></span></span></code></pre></div><h4 id=configure-the-kubernetes-api-server>Configure the Kubernetes API Server</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=o>{</span>
+</span></span><span class=line><span class=cl>  sudo mkdir -p /var/lib/kubernetes/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  sudo cp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    service-account-key.pem service-account.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    /var/lib/kubernetes/
+</span></span><span class=line><span class=cl><span class=o>}</span></span></span></code></pre></div><p>The instance IP address will be used to advertise the API Server to members of the cluster.
+Retrieve the IP address for the current compute instance:</p><div class="wrap-code highlight"><pre tabindex=0><code>INTERNAL_IP=$(grep -w $(hostname) /etc/hosts |awk &#39;{print $1}&#39;)</code></pre></div><p>Etcd servers</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ETCD_MEMBERS=$(grep worker /etc/hosts |awk &#39;{print &#34;https://&#34;$1&#34;:2379&#34;}&#39; |sed &#39;:a;N;$!ba;s/\n/,/g&#39;)</code></pre></div><p>Create the <code>kube-apiserver.service</code> systemd unit file:</p><div class="wrap-code highlight"><pre tabindex=0><code>cat &lt;&lt;EOF | sudo tee /etc/systemd/system/kube-apiserver.service
+[Unit]
+Description=Kubernetes API Server
+Documentation=https://github.com/kubernetes/kubernetes
+
+[Service]
+ExecStart=/usr/local/bin/kube-apiserver \\
+  --advertise-address=${INTERNAL_IP} \\
+  --allow-privileged=true \\
+  --apiserver-count=3 \\
+  --audit-log-maxage=30 \\
+  --audit-log-maxbackup=3 \\
+  --audit-log-maxsize=100 \\
+  --audit-log-path=/var/log/audit.log \\
+  --authorization-mode=Node,RBAC \\
+  --bind-address=0.0.0.0 \\
+  --client-ca-file=/var/lib/kubernetes/ca.pem \\
+  --enable-admission-plugins=Initializers,NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota \\
+  --enable-swagger-ui=true \\
+  --etcd-cafile=/var/lib/kubernetes/ca.pem \\
+  --etcd-certfile=/var/lib/kubernetes/kubernetes.pem \\
+  --etcd-keyfile=/var/lib/kubernetes/kubernetes-key.pem \\
+  --etcd-servers=${ETCD_MEMBERS} \\
+  --event-ttl=1h \\
+  --kubelet-certificate-authority=/var/lib/kubernetes/ca.pem \\
+  --kubelet-client-certificate=/var/lib/kubernetes/kubernetes.pem \\
+  --kubelet-client-key=/var/lib/kubernetes/kubernetes-key.pem \\
+  --kubelet-https=true \\
+  --runtime-config=api/all \\
+  --service-account-key-file=/var/lib/kubernetes/service-account.pem \\
+  --service-cluster-ip-range=172.168.0.0/16 \\
+  --service-node-port-range=30000-32767 \\
+  --tls-cert-file=/var/lib/kubernetes/kubernetes.pem \\
+  --tls-private-key-file=/var/lib/kubernetes/kubernetes-key.pem \\
+  --requestheader-client-ca-file=/var/lib/kubernetes/ca.pem \\
+  --v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF</code></pre></div><h4 id=configure-the-kubernetes-controller-manager>Configure the Kubernetes Controller Manager</h4><p>Move the <code>kube-controller-manager</code> kubeconfig into place:</p><div class="wrap-code highlight"><pre tabindex=0><code>sudo mv kube-controller-manager.kubeconfig /var/lib/kubernetes/</code></pre></div><p>Create the <code>kube-controller-manager.service</code> systemd unit file:</p><div class="wrap-code highlight"><pre tabindex=0><code>cat &lt;&lt;EOF | sudo tee /etc/systemd/system/kube-controller-manager.service
+[Unit]
+Description=Kubernetes Controller Manager
+Documentation=https://github.com/kubernetes/kubernetes
+
+[Service]
+ExecStart=/usr/local/bin/kube-controller-manager \\
+  --allocate-node-cidrs=true \\
+  --bind-address=0.0.0.0 \\
+  --cluster-cidr=10.10.0.0/16 \\
+  --cluster-name=kubernetes \\
+  --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \\
+  --cluster-signing-key-file=/var/lib/kubernetes/ca-key.pem \\
+  --kubeconfig=/var/lib/kubernetes/kube-controller-manager.kubeconfig \\
+  --leader-elect=true \\
+  --root-ca-file=/var/lib/kubernetes/ca.pem \\
+  --service-account-private-key-file=/var/lib/kubernetes/service-account-key.pem \\
+  --service-cluster-ip-range=172.168.0.0/16 \\
+  --use-service-account-credentials=true \\
+  --v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF</code></pre></div><h4 id=configure-the-kubernetes-scheduler>Configure the Kubernetes Scheduler</h4><p>Move the <code>kube-scheduler</code> kubeconfig into place:</p><div class="wrap-code highlight"><pre tabindex=0><code>sudo mv kube-scheduler.kubeconfig /var/lib/kubernetes/</code></pre></div><p>Create the <code>kube-scheduler.yaml</code> configuration file:</p><div class="wrap-code highlight"><pre tabindex=0><code>cat &lt;&lt;EOF | sudo tee /etc/kubernetes/config/kube-scheduler.yaml &gt;/dev/null
+apiVersion: kubescheduler.config.k8s.io/v1alpha1
+kind: KubeSchedulerConfiguration
+clientConnection:
+  kubeconfig: &#34;/var/lib/kubernetes/kube-scheduler.kubeconfig&#34;
+leaderElection:
+  leaderElect: true
+EOF</code></pre></div><p>Create the <code>kube-scheduler.service</code> systemd unit file:</p><div class="wrap-code highlight"><pre tabindex=0><code>cat &lt;&lt;EOF | sudo tee /etc/systemd/system/kube-scheduler.service
+[Unit]
+Description=Kubernetes Scheduler
+Documentation=https://github.com/kubernetes/kubernetes
+
+[Service]
+ExecStart=/usr/local/bin/kube-scheduler \\
+  --config=/etc/kubernetes/config/kube-scheduler.yaml \\
+  --v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF</code></pre></div><h4 id=start-the-controller-services>Start the Controller Services</h4><div class="wrap-code highlight"><pre tabindex=0><code>{
+  sudo systemctl daemon-reload
+  sudo systemctl enable kube-apiserver kube-controller-manager kube-scheduler
+  sudo systemctl start kube-apiserver kube-controller-manager kube-scheduler
+}</code></pre></div><blockquote><p>Allow up to 10 seconds for the Kubernetes API Server to fully initialize.</p></blockquote><h4 id=verification>Verification</h4><div class="wrap-code highlight"><pre tabindex=0><code>kubectl get componentstatuses --kubeconfig admin.kubeconfig</code></pre></div><div class="wrap-code highlight"><pre tabindex=0><code>NAME                 STATUS    MESSAGE             ERROR  
+controller-manager   Healthy   ok                         
+scheduler            Healthy   ok                         
+etcd-0               Healthy   {&#34;health&#34;:&#34;true&#34;}          
+etcd-2               Healthy   {&#34;health&#34;:&#34;true&#34;}          
+etcd-1               Healthy   {&#34;health&#34;:&#34;true&#34;}          </code></pre></div><h3 id=rbac-for-kubelet-authorization>RBAC for Kubelet Authorization</h3><p>In this section you will configure RBAC permissions to allow the Kubernetes API Server to access the Kubelet API on each worker node. Access to the Kubelet API is required for retrieving metrics, logs, and executing commands in pods.</p><blockquote><p>This tutorial sets the Kubelet <code>--authorization-mode</code> flag to <code>Webhook</code>. Webhook mode uses the <a href=https://kubernetes.io/docs/admin/authorization/#checking-api-access target=_blank>SubjectAccessReview</a> API to determine authorization.</p></blockquote><p>Create the <code>system:kube-apiserver-to-kubelet</code> <a href=https://kubernetes.io/docs/admin/authorization/rbac/#role-and-clusterrole target=_blank>ClusterRole</a> with permissions to access the Kubelet API and perform most common tasks associated with managing pods:</p><div class="wrap-code highlight"><pre tabindex=0><code>cat &lt;&lt;EOF | kubectl apply --kubeconfig admin.kubeconfig -f -
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: &#34;true&#34;
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+  name: system:kube-apiserver-to-kubelet
+rules:
+  - apiGroups:
+      - &#34;&#34;
+    resources:
+      - nodes/proxy
+      - nodes/stats
+      - nodes/log
+      - nodes/spec
+      - nodes/metrics
+    verbs:
+      - &#34;*&#34;
+EOF</code></pre></div><p>The Kubernetes API Server authenticates to the Kubelet as the <code>kubernetes</code> user using the client certificate as defined by the <code>--kubelet-client-certificate</code> flag.</p><p>Bind the <code>system:kube-apiserver-to-kubelet</code> ClusterRole to the <code>kubernetes</code> user:</p><div class="wrap-code highlight"><pre tabindex=0><code>cat &lt;&lt;EOF | kubectl apply --kubeconfig admin.kubeconfig -f -
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: system:kube-apiserver
+  namespace: &#34;&#34;
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:kube-apiserver-to-kubelet
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: kubernetes
+EOF</code></pre></div><h4 id=verification-1>Verification</h4><p>Make a HTTP request for the Kubernetes version info:</p><div class="wrap-code highlight"><pre tabindex=0><code>curl --cacert /var/lib/kubernetes/ca.pem https://$(grep master /etc/hosts |awk &#39;{print $1}&#39;):6443/version</code></pre></div><blockquote><p>output</p></blockquote><div class="wrap-code highlight"><pre tabindex=0><code>{
+  &#34;major&#34;: &#34;1&#34;,
+  &#34;minor&#34;: &#34;13&#34;,
+  &#34;gitVersion&#34;: &#34;v1.13.0&#34;,
+  &#34;gitCommit&#34;: &#34;ddf47ac13c1a9483ea035a79cd7c10005ff21a6d&#34;,
+  &#34;gitTreeState&#34;: &#34;clean&#34;,
+  &#34;buildDate&#34;: &#34;2018-12-03T20:56:12Z&#34;,
+  &#34;goVersion&#34;: &#34;go1.11.2&#34;,
+  &#34;compiler&#34;: &#34;gc&#34;,
+  &#34;platform&#34;: &#34;linux/amd64&#34;
+}</code></pre></div><h4 id=configure-kubectl>Configure kubectl</h4><p>Execute this small script to copy the <code>admin.kubeconfig</code> config file to <code>~/.kube/config</code></p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=k>if</span> <span class=o>[</span> -d ~/.kube <span class=o>]</span>
+</span></span><span class=line><span class=cl><span class=k>then</span>
+</span></span><span class=line><span class=cl> <span class=nb>echo</span> <span class=s2>&#34;Directory .kube exist. Copying config file&#34;</span>
+</span></span><span class=line><span class=cl> <span class=k>if</span> <span class=o>[</span> -f ~/.kube/config <span class=o>]</span>
+</span></span><span class=line><span class=cl> <span class=k>then</span>
+</span></span><span class=line><span class=cl>  cp ~/admin.kubeconfig ~/.kube/config
+</span></span><span class=line><span class=cl> <span class=k>else</span>
+</span></span><span class=line><span class=cl>  <span class=nb>echo</span> <span class=s2>&#34;Directory .kube dosn&#39;t exist, so creating and then copying config file&#34;</span>
+</span></span><span class=line><span class=cl>  mkdir ~/.kube
+</span></span><span class=line><span class=cl>  cp ~/admin.kubeconfig ~/.kube/config
+</span></span><span class=line><span class=cl> <span class=k>fi</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span></span></span></code></pre></div><footer class=footline></footer></article><article class=default><header class=headline></header><h1 id=worker-plane-setup>Worker Plane Setup</h1><h3 id=bootstrapping-worker-nodes>Bootstrapping worker nodes</h3><p>In this lab , we will bootstrap three worker nodes.
+The following components will be installed on each node.</p><ul><li>Docker</li><li>Kubelet</li><li>Kube-proxy</li><li>Calico Network Plugin</li><li>CoreDNS</li></ul><h4 id=docker>Docker</h4><p>Instructions are <a href=../02-installation/04-docker-install/index.html>here</a></p><p>Once docker is installed , execute below steps to make docker ready for <code>kubelet</code> integration.</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ sudo vi /lib/systemd/system/docker.service</span></span></code></pre></div><p>Disable iptables, default bridge network and masquerading on docker</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-ruby data-lang=ruby><span class=line><span class=cl><span class=no>ExecStart</span><span class=o>=</span><span class=sr>/usr/</span><span class=n>bin</span><span class=o>/</span><span class=n>dockerd</span> <span class=o>-</span><span class=n>H</span> <span class=ss>fd</span><span class=p>:</span><span class=sr>//</span> <span class=o>--</span><span class=n>bridge</span><span class=o>=</span><span class=n>none</span> <span class=o>--</span><span class=n>iptables</span><span class=o>=</span><span class=kp>false</span> <span class=o>--</span><span class=n>ip</span><span class=o>-</span><span class=n>masq</span><span class=o>=</span><span class=kp>false</span></span></span></code></pre></div><p>Cleanup all docker specific networking from worker nodes</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ sudo iptables -t nat -F
+</span></span><span class=line><span class=cl>$ sudo ip link <span class=nb>set</span> docker0 down
+</span></span><span class=line><span class=cl>$ sudo ip link delete docker0</span></span></code></pre></div><p>Reload and then stop docker (we will start it later)</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ sudo systemctl daemon-reload
+</span></span><span class=line><span class=cl>$ sudo systemctl stop docker</span></span></code></pre></div><h4 id=download-and-configure-prerequisites>Download and configure Prerequisites</h4><p>Install few binaries which are needed for proper networking</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=o>{</span>
+</span></span><span class=line><span class=cl>  sudo apt-get update
+</span></span><span class=line><span class=cl>  sudo apt-get -y install socat conntrack ipset
+</span></span><span class=line><span class=cl><span class=o>}</span></span></span></code></pre></div><p>Download <code>kuberctl, kube-proxy and kubelet</code></p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ wget -q --show-progress --https-only --timestamping <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kube-proxy <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubelet</span></span></code></pre></div><p>Create needed directories</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ sudo mkdir -p <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  /var/lib/kubelet <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  /var/lib/kube-proxy <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  /var/lib/kubernetes</span></span></code></pre></div><p>Provide execution permission and move to one of the shell $PATH</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ chmod +x kubectl kube-proxy kubelet
+</span></span><span class=line><span class=cl>$ sudo mv kubectl kube-proxy kubelet /usr/local/bin/</span></span></code></pre></div><h4 id=kubelet-configuration>Kubelet configuration</h4><p>Move certificates and configuration files to the path created earlier</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=o>{</span>
+</span></span><span class=line><span class=cl>  sudo mv <span class=si>${</span><span class=nv>HOSTNAME</span><span class=si>}</span>-key.pem <span class=si>${</span><span class=nv>HOSTNAME</span><span class=si>}</span>.pem /var/lib/kubelet/
+</span></span><span class=line><span class=cl>  sudo mv <span class=si>${</span><span class=nv>HOSTNAME</span><span class=si>}</span>.kubeconfig /var/lib/kubelet/kubeconfig
+</span></span><span class=line><span class=cl>  sudo mv ca.pem /var/lib/kubernetes/
+</span></span><span class=line><span class=cl><span class=o>}</span></span></span></code></pre></div><p>Create <code>kubelet</code> configuration</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ cat <span class=s>&lt;&lt;EOF | sudo tee /var/lib/kubelet/kubelet-config.yaml
+</span></span></span><span class=line><span class=cl><span class=s>kind: KubeletConfiguration
+</span></span></span><span class=line><span class=cl><span class=s>apiVersion: kubelet.config.k8s.io/v1beta1
+</span></span></span><span class=line><span class=cl><span class=s>authentication:
+</span></span></span><span class=line><span class=cl><span class=s>  anonymous:
+</span></span></span><span class=line><span class=cl><span class=s>    enabled: false
+</span></span></span><span class=line><span class=cl><span class=s>  webhook:
+</span></span></span><span class=line><span class=cl><span class=s>    enabled: true
+</span></span></span><span class=line><span class=cl><span class=s>  x509:
+</span></span></span><span class=line><span class=cl><span class=s>    clientCAFile: &#34;/var/lib/kubernetes/ca.pem&#34;
+</span></span></span><span class=line><span class=cl><span class=s>authorization:
+</span></span></span><span class=line><span class=cl><span class=s>  mode: Webhook
+</span></span></span><span class=line><span class=cl><span class=s>clusterDomain: &#34;cluster.local&#34;
+</span></span></span><span class=line><span class=cl><span class=s>clusterDNS:
+</span></span></span><span class=line><span class=cl><span class=s>  - &#34;172.168.0.2&#34;
+</span></span></span><span class=line><span class=cl><span class=s>podCIDR: &#34;${POD_CIDR}&#34;
+</span></span></span><span class=line><span class=cl><span class=s>resolvConf: &#34;/run/resolvconf/resolv.conf&#34;
+</span></span></span><span class=line><span class=cl><span class=s>runtimeRequestTimeout: &#34;15m&#34;
+</span></span></span><span class=line><span class=cl><span class=s>tlsCertFile: &#34;/var/lib/kubelet/${HOSTNAME}.pem&#34;
+</span></span></span><span class=line><span class=cl><span class=s>tlsPrivateKeyFile: &#34;/var/lib/kubelet/${HOSTNAME}-key.pem&#34;
+</span></span></span><span class=line><span class=cl><span class=s>EOF</span></span></span></code></pre></div><p>Create systemd unit file for <code>kubelet</code></p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ cat <span class=s>&lt;&lt;EOF | sudo tee /etc/systemd/system/kubelet.service
+</span></span></span><span class=line><span class=cl><span class=s>[Unit]
+</span></span></span><span class=line><span class=cl><span class=s>Description=Kubernetes Kubelet
+</span></span></span><span class=line><span class=cl><span class=s>Documentation=https://github.com/kubernetes/kubernetes
+</span></span></span><span class=line><span class=cl><span class=s>After=containerd.service
+</span></span></span><span class=line><span class=cl><span class=s>Requires=containerd.service
+</span></span></span><span class=line><span class=cl><span class=s>
+</span></span></span><span class=line><span class=cl><span class=s>[Service]
+</span></span></span><span class=line><span class=cl><span class=s>ExecStart=/usr/local/bin/kubelet \\
+</span></span></span><span class=line><span class=cl><span class=s>  --config=/var/lib/kubelet/kubelet-config.yaml \\
+</span></span></span><span class=line><span class=cl><span class=s>  --image-pull-progress-deadline=2m \\
+</span></span></span><span class=line><span class=cl><span class=s>  --kubeconfig=/var/lib/kubelet/kubeconfig \\
+</span></span></span><span class=line><span class=cl><span class=s>  --network-plugin=cni \\
+</span></span></span><span class=line><span class=cl><span class=s>  --register-node=true \\
+</span></span></span><span class=line><span class=cl><span class=s>  --v=2
+</span></span></span><span class=line><span class=cl><span class=s>Restart=on-failure
+</span></span></span><span class=line><span class=cl><span class=s>RestartSec=5
+</span></span></span><span class=line><span class=cl><span class=s>
+</span></span></span><span class=line><span class=cl><span class=s>[Install]
+</span></span></span><span class=line><span class=cl><span class=s>WantedBy=multi-user.target
+</span></span></span><span class=line><span class=cl><span class=s>EOF</span></span></span></code></pre></div><h4 id=kubernetes-proxy-configuration>Kubernetes Proxy configuration</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ sudo mv kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig</span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ cat <span class=s>&lt;&lt;EOF | sudo tee /var/lib/kube-proxy/kube-proxy-config.yaml
+</span></span></span><span class=line><span class=cl><span class=s>kind: KubeProxyConfiguration
+</span></span></span><span class=line><span class=cl><span class=s>apiVersion: kubeproxy.config.k8s.io/v1alpha1
+</span></span></span><span class=line><span class=cl><span class=s>clientConnection:
+</span></span></span><span class=line><span class=cl><span class=s>  kubeconfig: &#34;/var/lib/kube-proxy/kubeconfig&#34;
+</span></span></span><span class=line><span class=cl><span class=s>mode: &#34;iptables&#34;
+</span></span></span><span class=line><span class=cl><span class=s>clusterCIDR: &#34;10.10.0.0/16&#34;
+</span></span></span><span class=line><span class=cl><span class=s>EOF</span></span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ cat <span class=s>&lt;&lt;EOF | sudo tee /etc/systemd/system/kube-proxy.service
+</span></span></span><span class=line><span class=cl><span class=s>[Unit]
+</span></span></span><span class=line><span class=cl><span class=s>Description=Kubernetes Kube Proxy
+</span></span></span><span class=line><span class=cl><span class=s>Documentation=https://github.com/kubernetes/kubernetes
+</span></span></span><span class=line><span class=cl><span class=s>
+</span></span></span><span class=line><span class=cl><span class=s>[Service]
+</span></span></span><span class=line><span class=cl><span class=s>ExecStart=/usr/local/bin/kube-proxy \\
+</span></span></span><span class=line><span class=cl><span class=s>  --config=/var/lib/kube-proxy/kube-proxy-config.yaml
+</span></span></span><span class=line><span class=cl><span class=s>Restart=on-failure
+</span></span></span><span class=line><span class=cl><span class=s>RestartSec=5
+</span></span></span><span class=line><span class=cl><span class=s>
+</span></span></span><span class=line><span class=cl><span class=s>[Install]
+</span></span></span><span class=line><span class=cl><span class=s>WantedBy=multi-user.target
+</span></span></span><span class=line><span class=cl><span class=s>EOF</span></span></span></code></pre></div><h4 id=service-startup>Service startup</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=o>{</span>
+</span></span><span class=line><span class=cl>  sudo systemctl daemon-reload
+</span></span><span class=line><span class=cl>  sudo systemctl <span class=nb>enable</span> docker kubelet kube-proxy
+</span></span><span class=line><span class=cl>  sudo systemctl start docker kubelet kube-proxy
+</span></span><span class=line><span class=cl><span class=o>}</span></span></span></code></pre></div><h4 id=calico-cni-deployment>Calico CNI deployment</h4><p>Download deployment yaml.</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ curl <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>https://docs.projectcalico.org/v3.5/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>-O</span></span></code></pre></div><p>Modify Pod cidr pool as below</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ vi calico.yaml</span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>CALICO_IPV4POOL_CIDR</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;10.10.0.0/16&#34;</span></span></span></code></pre></div><p>Create deployment</p><div class="wrap-code highlight"><pre tabindex=0><code>$ kubectl apply -f calico.yaml</code></pre></div><h4 id=coredns-deployment>CoreDNS deployment</h4><p>Download and apply prebuilt CoreDNS yaml</p><div class="wrap-code highlight"><pre tabindex=0><code>$ kubectl apply -f https://raw.githubusercontent.com/ansilh/kubernetes-the-hardway-virtualbox/master/config/coredns.yaml</code></pre></div><h4 id=verification>Verification</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ kubectl cluster-info</span></span></code></pre></div><blockquote><p><strong>Output</strong></p></blockquote><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=n>Kubernetes</span><span class=w> </span><span class=n>master</span><span class=w> </span><span class=n>is</span><span class=w> </span><span class=n>running</span><span class=w> </span><span class=n>at</span><span class=w> </span><span class=n>http</span><span class=p>:</span><span class=c1>//localhost:8080</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>CoreDNS</span><span class=w> </span><span class=n>is</span><span class=w> </span><span class=n>running</span><span class=w> </span><span class=n>at</span><span class=w> </span><span class=n>http</span><span class=p>:</span><span class=o>//</span><span class=n>localhost</span><span class=p>:</span><span class=n>8080</span><span class=o>/</span><span class=n>api</span><span class=o>/</span><span class=n>v1</span><span class=o>/</span><span class=n>namespaces</span><span class=o>/</span><span class=n>kube</span><span class=o>-</span><span class=n>system</span><span class=o>/</span><span class=n>services</span><span class=o>/</span><span class=n>kube</span><span class=o>-</span><span class=n>dns</span><span class=p>:</span><span class=n>dns</span><span class=o>/</span><span class=n>proxy</span></span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ kubectl get componentstatus</span></span></code></pre></div><blockquote><p><strong>Output</strong></p></blockquote><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=l>NAME                 STATUS    MESSAGE             ERROR</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>controller-manager   Healthy   ok</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>scheduler            Healthy   ok</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>etcd-0               Healthy   {&#34;health&#34;:&#34;true&#34;}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>etcd-2               Healthy   {&#34;health&#34;:&#34;true&#34;}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>etcd-1               Healthy   {&#34;health&#34;:&#34;true&#34;}</span></span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ kubectl get nodes</span></span></code></pre></div><blockquote><p><strong>Output</strong></p></blockquote><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=l>NAME               STATUS   ROLES    AGE   VERSION</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>k8s-worker-ah-01   Ready    &lt;none&gt;   47m   v1.13.0</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>k8s-worker-ah-02   Ready    &lt;none&gt;   47m   v1.13.0</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>k8s-worker-ah-03   Ready    &lt;none&gt;   47m   v1.13.0</span></span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ kubectl get pods -n kube-system</span></span></code></pre></div><blockquote><p><strong>Output</strong></p></blockquote><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=l>NAME                       READY   STATUS    RESTARTS   AGE</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>calico-node-8ztcq          1/1     Running   0          21m</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>calico-node-hb7gt          1/1     Running   0          21m</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>calico-node-mjkfn          1/1     Running   0          21m</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>coredns-69cbb76ff8-kw8ls   1/1     Running   0          20m</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>coredns-69cbb76ff8-vb7rz   1/1     Running   0          20m</span></span></span></code></pre></div><footer class=footline></footer></article></section></div></main></div><script src=../js/clipboard.min.js?1704645243 defer></script><script src=../js/perfect-scrollbar.min.js?1704645243 defer></script><script src=../js/theme.js?1704645243 defer></script></body></html>

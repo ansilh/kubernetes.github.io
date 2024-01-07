@@ -1,0 +1,148 @@
+<!doctype html><html lang=en dir=ltr><head><meta charset=utf-8><meta name=viewport content="height=device-height,width=device-width,initial-scale=1,minimum-scale=1"><meta name=generator content="Hugo 0.121.1"><meta name=generator content="Relearn 5.23.2+tip"><meta name=robots content="noindex, nofollow, noarchive, noimageindex"><meta name=description content="Kubernetes pocket gude and more"><meta name=author content="Ansil H"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://kubernetes.ansilh.com/images/hero.png"><meta name=twitter:title content="Upgrade :: Hugo Relearn Theme"><meta name=twitter:description content="Kubernetes pocket gude and more"><meta property="og:title" content="Upgrade :: Hugo Relearn Theme"><meta property="og:description" content="Kubernetes pocket gude and more"><meta property="og:type" content="website"><meta property="og:url" content="https://kubernetes.ansilh.com/21-helm/04-upgrade/index.html"><meta property="og:image" content="https://kubernetes.ansilh.com/images/hero.png"><meta property="og:site_name" content="Hugo Relearn Theme"><title>Upgrade :: Hugo Relearn Theme</title>
+<link href=../../images/logo.svg?1704645242 rel=icon type=image/svg+xml><link href=../../css/fontawesome-all.min.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../../css/fontawesome-all.min.css?1704645243 rel=stylesheet></noscript><link href=../../css/nucleus.css?1704645243 rel=stylesheet><link href=../../css/auto-complete.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../../css/auto-complete.css?1704645243 rel=stylesheet></noscript><link href=../../css/perfect-scrollbar.min.css?1704645243 rel=stylesheet><link href=../../css/fonts.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../../css/fonts.css?1704645243 rel=stylesheet></noscript><link href=../../css/theme.css?1704645243 rel=stylesheet><link href=../../css/theme-neon.css?1704645243 rel=stylesheet id=R-variant-style><link href=../../css/chroma-neon.css?1704645243 rel=stylesheet id=R-variant-chroma-style><link href=../../css/variant.css?1704645243 rel=stylesheet><link href=../../css/print.css?1704645243 rel=stylesheet media=print><link href=../../css/format-print.css?1704645243 rel=stylesheet><link href=../../css/ie.css?1704645243 rel=stylesheet><script src=../../js/url.js?1704645243></script><script src=../../js/variant.js?1704645243></script><script>window.index_js_url="../../index.search.js";var root_url="../../",baseUri=root_url.replace(/\/$/,"");window.relearn=window.relearn||{},window.relearn.baseUriFull="https://kubernetes.ansilh.com/",window.relearn.themeVariantModifier="",window.variants&&variants.init(["neon"]),window.T_Copy_to_clipboard=`Copy to clipboard`,window.T_Copied_to_clipboard=`Copied to clipboard!`,window.T_Copy_link_to_clipboard=`Copy link to clipboard`,window.T_Link_copied_to_clipboard=`Copied link to clipboard!`,window.T_Reset_view=`Reset view`,window.T_View_reset=`View reset!`,window.T_No_results_found=`No results found for "{0}"`,window.T_N_results_found=`{1} results found for "{0}"`</script><style>#R-body img.bg-white{background-color:#fff}</style></head><body class="mobile-support print disableInlineCopyToClipboard" data-url=../../21-helm/04-upgrade/index.html><div id=R-body class=default-animation><div id=R-body-overlay></div><nav id=R-topbar><div class=topbar-wrapper><div class=topbar-sidebar-divider></div><div class="topbar-area topbar-area-start" data-area=start><div class="topbar-button topbar-button-sidebar" data-content-empty=disable data-width-s=show data-width-m=hide data-width-l=hide><button class=topbar-control onclick=toggleNav() type=button title="Menu (CTRL+ALT+n)"><i class="fa-fw fas fa-bars"></i></button></div></div><ol class="topbar-breadcrumbs breadcrumbs highlightable" itemscope itemtype=http://schema.org/BreadcrumbList><li itemscope itemtype=https://schema.org/ListItem itemprop=itemListElement><a itemprop=item href=../../21-helm/index.html><span itemprop=name>Helm</span></a><meta itemprop=position content="1">&nbsp;>&nbsp;</li><li itemscope itemtype=https://schema.org/ListItem itemprop=itemListElement><span itemprop=name>Upgrade</span><meta itemprop=position content="2"></li></ol><div class="topbar-area topbar-area-end" data-area=end></div></div></nav><div id=R-main-overlay></div><main id=R-body-inner class="highlightable default" tabindex=-1><div class=flex-block-wrapper><article class=default><header class=headline></header><h1 id=upgrade>Upgrade</h1><h1 id=deployment>Deployment</h1><h4 id=modify-values-file-with-below-content>Modify <code>values</code> file with below content</h4><div class="wrap-code highlight"><pre tabindex=0><code>cat &lt;&lt;EOF &gt;nginx-deployment/values.yaml
+replicaCount: 2
+image:
+  repository: &#34;nginx&#34;
+  tag: &#34;1.14&#34;
+EOF</code></pre></div><h4 id=modify-deployment-template>Modify deployment template</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ vi nginx-deployment/templates/nginx-deployment.yaml</span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>apps/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>creationTimestamp</span><span class=p>:</span><span class=w> </span><span class=kc>null</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>run</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span>{{<span class=w> </span><span class=l>.Values.replicaCount }}</span><span class=w> </span><span class=c># &lt;-- This is value is referred from values.yaml `replicaCount` field</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>run</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>strategy</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>creationTimestamp</span><span class=p>:</span><span class=w> </span><span class=kc>null</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>run</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>image</span><span class=p>:</span><span class=w> </span>{{<span class=w> </span><span class=l>.Values.image.repository }}:{{ .Values.image.tag }}</span><span class=w> </span><span class=c># &lt;-- this is self explanatory :)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>resources</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>status</span><span class=p>:</span><span class=w> </span>{}</span></span></code></pre></div><h4 id=lint-the-chart-to-make-sure-everything-good>Lint the chart to make sure everything good.</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ helm lint ./nginx-deployment/</span></span></code></pre></div><blockquote><p>Output</p></blockquote><div class="wrap-code highlight"><pre tabindex=0><code>==&gt; Linting ./nginx-deployment/
+Lint OK
+
+1 chart(s) linted, no failures</code></pre></div><ul><li>The <code>REVISION</code> is <code>1</code> as of now.</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ helm ls</span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-properties data-lang=properties><span class=line><span class=cl><span class=na>NAME</span>            <span class=s>REVISION        UPDATED                         STATUS          CHART                   APP VERSION     NAMESPACE</span>
+</span></span><span class=line><span class=cl><span class=na>ungaged-possum</span>  <span class=s>1               Fri Mar 15 16:41:28 2019        DEPLOYED        nginx-deployment-1                      default</span></span></span></code></pre></div><h4 id=execute-a-dry-run>Execute a dry-run</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ helm upgrade ungaged-possum ./nginx-deployment/   --dry-run --debug</span></span></code></pre></div><blockquote><p>Output</p></blockquote><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>[debug] Created tunnel using local port</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;43533&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>[debug] SERVER</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;127.0.0.1:43533&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>REVISION</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>RELEASED</span><span class=p>:</span><span class=w> </span><span class=l>Fri Mar 15 18:17:19 2019</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>CHART</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment-1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>USER-SUPPLIED VALUES</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span>{}<span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>COMPUTED VALUES</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>image</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>repository</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>tag</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;1.14&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>replicaCount</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>HOOKS</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>MANIFEST</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nn>---</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c># Source: nginx-deployment/templates/nginx-deployment.yaml</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>apps/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>creationTimestamp</span><span class=p>:</span><span class=w> </span><span class=kc>null</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>run</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>run</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>strategy</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>creationTimestamp</span><span class=p>:</span><span class=w> </span><span class=kc>null</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>run</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>nginx:1.14</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>resources</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>status</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>Release &#34;ungaged-possum&#34; has been upgraded. Happy Helming!</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>LAST DEPLOYED</span><span class=p>:</span><span class=w> </span><span class=l>Fri Mar 15 16:41:28 2019</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>NAMESPACE</span><span class=p>:</span><span class=w> </span><span class=l>default</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>STATUS</span><span class=p>:</span><span class=w> </span><span class=l>DEPLOYED</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>RESOURCES</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>==&gt; v1/Deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>NAME              READY  UP-TO-DATE  AVAILABLE  AGE</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>nginx-deployment  1/1    1           1          95m</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>==&gt; v1/Pod(related)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>NAME                               READY  STATUS   RESTARTS  AGE</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>nginx-deployment-64f767964b-drfcc  1/1    Running  0         95m</span></span></span></code></pre></div><h4 id=upgrade-package>Upgrade package</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ helm upgrade ungaged-possum ./nginx-deployment/</span></span></code></pre></div><blockquote><p>Output</p></blockquote><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-properties data-lang=properties><span class=line><span class=cl><span class=na>Release</span> <span class=s>&#34;ungaged-possum&#34; has been upgraded. Happy Helming!</span>
+</span></span><span class=line><span class=cl><span class=na>LAST</span> <span class=s>DEPLOYED: Fri Mar 15 18:17:52 2019</span>
+</span></span><span class=line><span class=cl><span class=na>NAMESPACE</span><span class=o>:</span> <span class=s>default</span>
+</span></span><span class=line><span class=cl><span class=na>STATUS</span><span class=o>:</span> <span class=s>DEPLOYED</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=na>RESOURCES</span><span class=o>:</span>
+</span></span><span class=line><span class=cl><span class=na>=</span><span class=o>=</span><span class=s>&gt; v1/Deployment</span>
+</span></span><span class=line><span class=cl><span class=na>NAME</span>              <span class=s>READY  UP-TO-DATE  AVAILABLE  AGE</span>
+</span></span><span class=line><span class=cl><span class=na>nginx-deployment</span>  <span class=s>1/2    1           1          96m</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=na>=</span><span class=o>=</span><span class=s>&gt; v1/Pod(related)</span>
+</span></span><span class=line><span class=cl><span class=na>NAME</span>                               <span class=s>READY  STATUS   RESTARTS  AGE</span>
+</span></span><span class=line><span class=cl><span class=na>nginx-deployment-64f767964b-drfcc</span>  <span class=s>1/1    Running  0         96m</span></span></span></code></pre></div><h4 id=verify-the-number-of-pods-after-upgarde>Verify the number of <code>Pods</code> after upgarde.</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ kubectl get pods</span></span></code></pre></div><blockquote><p>Output</p></blockquote><div class="wrap-code highlight"><pre tabindex=0><code>NAME                               READY   STATUS    RESTARTS   AGE
+nginx-deployment-d5d56dcf9-6cxvk   1/1     Running   0          7s
+nginx-deployment-d5d56dcf9-8r868   1/1     Running   0          20s</code></pre></div><h4 id=verify-the-new-nginx-version>Verify the new Nginx version</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ kubectl <span class=nb>exec</span> nginx-deployment-d5d56dcf9-6cxvk -- nginx -v</span></span></code></pre></div><blockquote><p>Output</p></blockquote><div class="wrap-code highlight"><pre tabindex=0><code>nginx version: nginx/1.14.2</code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ helm ls</span></span></code></pre></div><blockquote><p>Output</p></blockquote><div class="wrap-code highlight"><pre tabindex=0><code>NAME            REVISION        UPDATED                         STATUS          CHART                   APP VERSION     NAMESPACE
+ungaged-possum  2               Fri Mar 15 18:17:52 2019        DEPLOYED        nginx-deployment-1                      default</code></pre></div><h4 id=check-the-helm-upgrade-history>Check the helm upgrade history</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ helm <span class=nb>history</span> ungaged-possum</span></span></code></pre></div><blockquote><p>Output</p></blockquote><div class="wrap-code highlight"><pre tabindex=0><code>REVISION        UPDATED                         STATUS          CHART                   DESCRIPTION
+1               Fri Mar 15 16:41:28 2019        SUPERSEDED      nginx-deployment-1      Install complete
+2               Fri Mar 15 18:17:52 2019        DEPLOYED        nginx-deployment-1      Upgrade complete</code></pre></div><h4 id=check-the-changes-happened-between-revisions>Check the changes happened between revisions</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ sdiff &lt;<span class=o>(</span>helm get ungaged-possum --revision<span class=o>=</span>1<span class=o>)</span> &lt;<span class=o>(</span>helm get ungaged-possum --revision<span class=o>=</span>2<span class=o>)</span></span></span></code></pre></div><div class="box notices cstyle note"><div class=box-label><i class="fa-fw fas fa-exclamation-circle"></i> Note</div><div class=box-content><p><b>Output on right hand side shows the changed values.<br><code>|</code> Indicates changes in line.<br><code>></code> Indicates inserted lines.</b></p></div></div><div class="wrap-code highlight"><pre tabindex=0><code>REVISION: 1                                                   | REVISION: 2
+RELEASED: Fri Mar 15 16:41:28 2019                            | RELEASED: Fri Mar 15 18:17:52 2019
+CHART: nginx-deployment-1                                       CHART: nginx-deployment-1
+USER-SUPPLIED VALUES:                                           USER-SUPPLIED VALUES:
+{}                                                              {}
+
+COMPUTED VALUES:                                                COMPUTED VALUES:
+{}                                                            | image:
+                                                              &gt;   repository: nginx
+                                                              &gt;   tag: &#34;1.14&#34;
+                                                              &gt; replicaCount: 2
+
+HOOKS:                                                          HOOKS:
+MANIFEST:                                                       MANIFEST:
+
+---                                                             ---
+# Source: nginx-deployment/templates/nginx-deployment.yaml      # Source: nginx-deployment/templates/nginx-deployment.yaml
+apiVersion: apps/v1                                             apiVersion: apps/v1
+kind: Deployment                                                kind: Deployment
+metadata:                                                       metadata:
+  creationTimestamp: null                                         creationTimestamp: null
+  labels:                                                         labels:
+    run: nginx-deployment                                           run: nginx-deployment
+  name: nginx-deployment                                          name: nginx-deployment
+spec:                                                           spec:
+  replicas: 1                                                 |   replicas: 2
+  selector:                                                       selector:
+    matchLabels:                                                    matchLabels:
+      run: nginx-deployment                                           run: nginx-deployment
+  strategy: {}                                                    strategy: {}
+  template:                                                       template:
+    metadata:                                                       metadata:
+      creationTimestamp: null                                         creationTimestamp: null
+      labels:                                                         labels:
+        run: nginx-deployment                                           run: nginx-deployment
+    spec:                                                           spec:
+      containers:                                                     containers:
+      - image: nginx:1.9.10                                   |       - image: nginx:1.14
+        name: nginx-deployment                                          name: nginx-deployment
+        resources: {}                                                   resources: {}
+status: {}                                                      status: {}</code></pre></div><footer class=footline></footer></article></div></main></div><script src=../../js/clipboard.min.js?1704645243 defer></script><script src=../../js/perfect-scrollbar.min.js?1704645243 defer></script><script src=../../js/theme.js?1704645243 defer></script></body></html>

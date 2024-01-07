@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Deployments on Hugo Relearn Theme</title><link>https://kubernetes.ansilh.com/11-deployments/index.html</link><description>Recent content in Deployments on Hugo Relearn Theme</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sat, 29 Dec 2018 17:15:52 +0000</lastBuildDate><atom:link href="https://kubernetes.ansilh.com/11-deployments/index.xml" rel="self" type="application/rss+xml"/><item><title>Nginx Deployment</title><link>https://kubernetes.ansilh.com/11-deployments/01-deployment/index.html</link><pubDate>Sat, 29 Dec 2018 17:15:52 +0000</pubDate><guid>https://kubernetes.ansilh.com/11-deployments/01-deployment/index.html</guid><description>$ kubectl run nginx --image=nginxOutput
+deployment.apps/nginx created Verify the Pods running
+$ kubectl get podsOutput
+NAME READY STATUS RESTARTS AGE nginx-7cdbd8cdc9-9xsms 1/1 Running 0 27s Here we can see that the Pod name is not like the usual one.
+Lets delete the Pod and see what will happen.
+$ kubectl delete pod nginx-7cdbd8cdc9-9xsmsOutput
+pod &amp;#34;nginx-7cdbd8cdc9-9xsms&amp;#34; deleted Verify Pod status
+$ kubectl get podsOutput
+NAME READY STATUS RESTARTS AGE nginx-7cdbd8cdc9-vfbn8 1/1 Running 0 81s A new Pod has been created again !</description></item><item><title>Expose Nginx Deployment</title><link>https://kubernetes.ansilh.com/11-deployments/02-expose-deployment/index.html</link><pubDate>Sat, 29 Dec 2018 17:15:52 +0000</pubDate><guid>https://kubernetes.ansilh.com/11-deployments/02-expose-deployment/index.html</guid><description>We know how to expose a Pod using a service.
+The endpoints will be created based on the label of the Pod.
+Here how we can create a service which can be used to access Nginx from outside
+First we will check the label of the Pod
+$ kubectl get pod nginx-7cdbd8cdc9-vfbn8 --show-labelsOutput
+NAME READY STATUS RESTARTS AGE LABELS nginx-7cdbd8cdc9-vfbn8 1/1 Running 0 7m19s pod-template-hash=7cdbd8cdc9,run=nginx As you can see , one of the label is run=nginx</description></item><item><title>Scaling</title><link>https://kubernetes.ansilh.com/11-deployments/03-scaling/index.html</link><pubDate>Sat, 29 Dec 2018 17:15:52 +0000</pubDate><guid>https://kubernetes.ansilh.com/11-deployments/03-scaling/index.html</guid><description>When load increases , we can scale the pods using deployment scaling
+$ kubectl scale deployment --replicas=3 nginx$ kubectl get podsOutput
+NAME READY STATUS RESTARTS AGE nginx-7cdbd8cdc9-4lhh4 1/1 Running 0 6s nginx-7cdbd8cdc9-mxhnl 1/1 Running 0 6s nginx-7cdbd8cdc9-vfbn8 1/1 Running 0 14m Lets see the endpoints of service
+$ kubectl get ep nginx-svcOutput
+NAME ENDPOINTS AGE nginx-svc 10.10.36.201:80,10.10.36.202:80,10.10.36.203:80 5m40s Endpoints will be automatically mapped , because when we scale the deployment , the newly created pod will have same label which matches the Service selector.</description></item></channel></rss>

@@ -1,0 +1,257 @@
+<!doctype html><html lang=en dir=ltr><head><meta charset=utf-8><meta name=viewport content="height=device-height,width=device-width,initial-scale=1,minimum-scale=1"><meta name=generator content="Hugo 0.121.1"><meta name=generator content="Relearn 5.23.2+tip"><meta name=robots content="noindex, nofollow, noarchive, noimageindex"><meta name=description content="Kubernetes pocket gude and more"><meta name=author content="Ansil H"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://kubernetes.ansilh.com/images/hero.png"><meta name=twitter:title content="API Access :: Hugo Relearn Theme"><meta name=twitter:description content="Kubernetes pocket gude and more"><meta property="og:title" content="API Access :: Hugo Relearn Theme"><meta property="og:description" content="Kubernetes pocket gude and more"><meta property="og:type" content="website"><meta property="og:url" content="https://kubernetes.ansilh.com/09-api_reference/01-api-access/index.html"><meta property="og:image" content="https://kubernetes.ansilh.com/images/hero.png"><meta property="og:site_name" content="Hugo Relearn Theme"><title>API Access :: Hugo Relearn Theme</title>
+<link href=../../images/logo.svg?1704645242 rel=icon type=image/svg+xml><link href=../../css/fontawesome-all.min.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../../css/fontawesome-all.min.css?1704645243 rel=stylesheet></noscript><link href=../../css/nucleus.css?1704645243 rel=stylesheet><link href=../../css/auto-complete.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../../css/auto-complete.css?1704645243 rel=stylesheet></noscript><link href=../../css/perfect-scrollbar.min.css?1704645243 rel=stylesheet><link href=../../css/fonts.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../../css/fonts.css?1704645243 rel=stylesheet></noscript><link href=../../css/theme.css?1704645243 rel=stylesheet><link href=../../css/theme-neon.css?1704645243 rel=stylesheet id=R-variant-style><link href=../../css/chroma-neon.css?1704645243 rel=stylesheet id=R-variant-chroma-style><link href=../../css/variant.css?1704645243 rel=stylesheet><link href=../../css/print.css?1704645243 rel=stylesheet media=print><link href=../../css/format-print.css?1704645243 rel=stylesheet><link href=../../css/ie.css?1704645243 rel=stylesheet><script src=../../js/url.js?1704645243></script><script src=../../js/variant.js?1704645243></script><script>window.index_js_url="../../index.search.js";var root_url="../../",baseUri=root_url.replace(/\/$/,"");window.relearn=window.relearn||{},window.relearn.baseUriFull="https://kubernetes.ansilh.com/",window.relearn.themeVariantModifier="",window.variants&&variants.init(["neon"]),window.T_Copy_to_clipboard=`Copy to clipboard`,window.T_Copied_to_clipboard=`Copied to clipboard!`,window.T_Copy_link_to_clipboard=`Copy link to clipboard`,window.T_Link_copied_to_clipboard=`Copied link to clipboard!`,window.T_Reset_view=`Reset view`,window.T_View_reset=`View reset!`,window.T_No_results_found=`No results found for "{0}"`,window.T_N_results_found=`{1} results found for "{0}"`</script><style>#R-body img.bg-white{background-color:#fff}</style></head><body class="mobile-support print disableInlineCopyToClipboard" data-url=../../09-api_reference/01-api-access/index.html><div id=R-body class=default-animation><div id=R-body-overlay></div><nav id=R-topbar><div class=topbar-wrapper><div class=topbar-sidebar-divider></div><div class="topbar-area topbar-area-start" data-area=start><div class="topbar-button topbar-button-sidebar" data-content-empty=disable data-width-s=show data-width-m=hide data-width-l=hide><button class=topbar-control onclick=toggleNav() type=button title="Menu (CTRL+ALT+n)"><i class="fa-fw fas fa-bars"></i></button></div></div><ol class="topbar-breadcrumbs breadcrumbs highlightable" itemscope itemtype=http://schema.org/BreadcrumbList><li itemscope itemtype=https://schema.org/ListItem itemprop=itemListElement><a itemprop=item href=../../09-api_reference/index.html><span itemprop=name>API reference</span></a><meta itemprop=position content="1">&nbsp;>&nbsp;</li><li itemscope itemtype=https://schema.org/ListItem itemprop=itemListElement><span itemprop=name>API Access</span><meta itemprop=position content="2"></li></ol><div class="topbar-area topbar-area-end" data-area=end></div></div></nav><div id=R-main-overlay></div><main id=R-body-inner class="highlightable default" tabindex=-1><div class=flex-block-wrapper><article class=default><header class=headline></header><h1 id=api-access>API Access</h1><p>Lets explore how API defines and organizes objects</p><h2 id=api-organization>API organization</h2><p>API is organized to two groups , one is <code>Core</code> group and second on is <code>Named Groups</code></p><h3 id=core-group>Core Group</h3><p>Contains all stable and core API objects</p><h4 id=api-apiversions><code>/api</code> (APIVersions)</h4><p>This endpoint will return core API version & API address itself</p><p>Execute below commands if you are using Vagrant based setup
+If you are using <code>kubeadm</code> based setup , then skip this.</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ sudo mkdir -p /etc/kubernetes/pki/
+</span></span><span class=line><span class=cl>$ sudo cp /home/vagrant/PKI/ca.pem /etc/kubernetes/pki/ca.crt
+</span></span><span class=line><span class=cl>$ sudo cp /home/vagrant/PKI/k8s-master-01.pem /etc/kubernetes/pki/apiserver-kubelet-client.crt
+</span></span><span class=line><span class=cl>$ sudo cp /home/vagrant/PKI/k8s-master-01-key.pem /etc/kubernetes/pki/apiserver-kubelet-client.key</span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=gp>$</span> sudo curl -s  --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key -XGET <span class=s1>&#39;https://192.168.56.201:6443/api?timeout=32s&#39;</span> <span class=p>|</span>python3 -m json.tool
+</span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-json data-lang=json><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;kind&#34;</span><span class=p>:</span> <span class=s2>&#34;APIVersions&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;versions&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>        <span class=s2>&#34;v1&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=p>],</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;serverAddressByClientCIDRs&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;clientCIDR&#34;</span><span class=p>:</span> <span class=s2>&#34;0.0.0.0/0&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;serverAddress&#34;</span><span class=p>:</span> <span class=s2>&#34;192.168.56.201:6443&#34;</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=p>}</span></span></span></code></pre></div><h4 id=apiv1-apiresourcelist><code>/api/v1</code> (APIResourceList)</h4><p>This endpoint will return objects/resources in core group <code>v1</code></p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=gp>$</span> sudo curl -s  --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key -XGET <span class=s1>&#39;https://192.168.56.201:6443/api/v1?timeout=32s&#39;</span> <span class=p>|</span>python3 -m json.tool
+</span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-json data-lang=json><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;kind&#34;</span><span class=p>:</span> <span class=s2>&#34;APIResourceList&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;groupVersion&#34;</span><span class=p>:</span> <span class=s2>&#34;v1&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;resources&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;name&#34;</span><span class=p>:</span> <span class=s2>&#34;bindings&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;singularName&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;namespaced&#34;</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;kind&#34;</span><span class=p>:</span> <span class=s2>&#34;Binding&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;verbs&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;create&#34;</span>
+</span></span><span class=line><span class=cl>            <span class=p>]</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;name&#34;</span><span class=p>:</span> <span class=s2>&#34;componentstatuses&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;singularName&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;namespaced&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;kind&#34;</span><span class=p>:</span> <span class=s2>&#34;ComponentStatus&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;verbs&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;get&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;list&#34;</span>
+</span></span><span class=line><span class=cl>            <span class=p>],</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;shortNames&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;cs&#34;</span>
+</span></span><span class=line><span class=cl>            <span class=p>]</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;name&#34;</span><span class=p>:</span> <span class=s2>&#34;configmaps&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;singularName&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;namespaced&#34;</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;kind&#34;</span><span class=p>:</span> <span class=s2>&#34;ConfigMap&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;verbs&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;create&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;delete&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;deletecollection&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;get&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;list&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;patch&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;update&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;watch&#34;</span>
+</span></span><span class=line><span class=cl>            <span class=p>],</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;shortNames&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;cm&#34;</span>
+</span></span><span class=line><span class=cl>            <span class=p>]</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl><span class=err>...</span>
+</span></span><span class=line><span class=cl><span class=err>...</span>
+</span></span><span class=line><span class=cl><span class=err>...</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;name&#34;</span><span class=p>:</span> <span class=s2>&#34;services/status&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;singularName&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;namespaced&#34;</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;kind&#34;</span><span class=p>:</span> <span class=s2>&#34;Service&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;verbs&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>        <span class=s2>&#34;get&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=s2>&#34;patch&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=s2>&#34;update&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=p>}</span></span></span></code></pre></div><h3 id=named-groups>Named Groups</h3><h4 id=apis-apigrouplist><code>/apis</code> (APIGroupList)</h4><p>This endpoint will return all named groups</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=gp>$</span> sudo curl -s  --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key -XGET <span class=s1>&#39;https://192.168.56.201:6443/apis?timeout=32s&#39;</span> <span class=p>|</span>python3 -m json.tool
+</span></span></code></pre></div><h4 id=apiapps-apigroup><code>/api/apps</code> (APIGroup)</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=gp>$</span> sudo curl -s  --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key -XGET <span class=s1>&#39;https://192.168.56.201:6443/apis/apps?timeout=32s&#39;</span> <span class=p>|</span>python3 -m json.tool
+</span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-json data-lang=json><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;kind&#34;</span><span class=p>:</span> <span class=s2>&#34;APIGroup&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;apiVersion&#34;</span><span class=p>:</span> <span class=s2>&#34;v1&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;name&#34;</span><span class=p>:</span> <span class=s2>&#34;apps&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;versions&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;groupVersion&#34;</span><span class=p>:</span> <span class=s2>&#34;apps/v1&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;version&#34;</span><span class=p>:</span> <span class=s2>&#34;v1&#34;</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;groupVersion&#34;</span><span class=p>:</span> <span class=s2>&#34;apps/v1beta2&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;version&#34;</span><span class=p>:</span> <span class=s2>&#34;v1beta2&#34;</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;groupVersion&#34;</span><span class=p>:</span> <span class=s2>&#34;apps/v1beta1&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;version&#34;</span><span class=p>:</span> <span class=s2>&#34;v1beta1&#34;</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=p>],</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;preferredVersion&#34;</span><span class=p>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;groupVersion&#34;</span><span class=p>:</span> <span class=s2>&#34;apps/v1&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;version&#34;</span><span class=p>:</span> <span class=s2>&#34;v1&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span></span></span></code></pre></div><h4 id=apiappsv1-apiresourcelist><code>/api/apps/v1</code> (APIResourceList)</h4><p>Will return objects / resources under apps/v1</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=gp>$</span> sudo curl -s  --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key -XGET <span class=s1>&#39;https://192.168.56.201:6443/apis/apps/v1?timeout=32s&#39;</span> <span class=p>|</span>python3 -m json.tool
+</span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-json data-lang=json><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;kind&#34;</span><span class=p>:</span> <span class=s2>&#34;APIResourceList&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;apiVersion&#34;</span><span class=p>:</span> <span class=s2>&#34;v1&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;groupVersion&#34;</span><span class=p>:</span> <span class=s2>&#34;apps/v1&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;resources&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;name&#34;</span><span class=p>:</span> <span class=s2>&#34;controllerrevisions&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;singularName&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;namespaced&#34;</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;kind&#34;</span><span class=p>:</span> <span class=s2>&#34;ControllerRevision&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;verbs&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;create&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;delete&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;deletecollection&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;get&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;list&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;patch&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;update&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;watch&#34;</span>
+</span></span><span class=line><span class=cl>            <span class=p>]</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;name&#34;</span><span class=p>:</span> <span class=s2>&#34;daemonsets&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;singularName&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;namespaced&#34;</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;kind&#34;</span><span class=p>:</span> <span class=s2>&#34;DaemonSet&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;verbs&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;create&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;delete&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;deletecollection&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;get&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;list&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;patch&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;update&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;watch&#34;</span>
+</span></span><span class=line><span class=cl>            <span class=p>],</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;shortNames&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;ds&#34;</span>
+</span></span><span class=line><span class=cl>            <span class=p>],</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;categories&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;all&#34;</span>
+</span></span><span class=line><span class=cl>            <span class=p>]</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl><span class=err>...</span>
+</span></span><span class=line><span class=cl><span class=err>...</span>
+</span></span><span class=line><span class=cl><span class=err>...</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;name&#34;</span><span class=p>:</span> <span class=s2>&#34;statefulsets/status&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;singularName&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;namespaced&#34;</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;kind&#34;</span><span class=p>:</span> <span class=s2>&#34;StatefulSet&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;verbs&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;get&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;patch&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;update&#34;</span>
+</span></span><span class=line><span class=cl>            <span class=p>]</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=p>}</span></span></span></code></pre></div><h3 id=api-versions>API versions</h3><p>Different API versions imply different levels of stability and support</p><h4 id=alpha-level>Alpha level:</h4><ul><li>The version names contain alpha (e.g. v1alpha1).</li><li>May be buggy. Enabling the feature may expose bugs. Disabled by default.</li><li>Support for feature may be dropped at any time without notice.</li><li>The API may change in incompatible ways in a later software release without notice.</li><li>Recommended for use only in short-lived testing clusters, due to increased risk of bugs and lack of long-term support.</li></ul><h4 id=beta-level>Beta level:</h4><ul><li>The version names contain beta (e.g. v2beta3).</li><li>Code is well tested. Enabling the feature is considered safe. Enabled by default.</li><li>Support for the overall feature will not be dropped, though details may change.</li><li>The schema and/or semantics of objects may change in incompatible ways in a subsequent beta or stable release. When this happens, k8s developers will provide instructions for migrating to the next version. This may require deleting, editing, and re-creating API objects. The editing process may require some thought. This may require downtime for applications that rely on the feature.</li><li>Recommended for only non-business-critical uses because of potential for incompatible changes in subsequent releases. If you have multiple clusters which can be upgraded independently, you may be able to relax this restriction.</li><li>Please do try our beta features and give feedback on them! Once they exit beta, it may not be practical for us to make more changes.</li></ul><h4 id=stable-level>Stable level:</h4><p>The version name is vX where X is an integer.
+Stable versions of features will appear in released software for many subsequent versions</p><h3 id=list-api-version-using-kubectl>List API version using <code>kubectl</code></h3><h4 id=api-versions-1>API Versions</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=gp>$</span> kubectl api-versions
+</span></span><span class=line><span class=cl><span class=go>admissionregistration.k8s.io/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>apiextensions.k8s.io/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>apiregistration.k8s.io/v1
+</span></span></span><span class=line><span class=cl><span class=go>apiregistration.k8s.io/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>apps/v1
+</span></span></span><span class=line><span class=cl><span class=go>apps/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>apps/v1beta2
+</span></span></span><span class=line><span class=cl><span class=go>authentication.k8s.io/v1
+</span></span></span><span class=line><span class=cl><span class=go>authentication.k8s.io/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>authorization.k8s.io/v1
+</span></span></span><span class=line><span class=cl><span class=go>authorization.k8s.io/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>autoscaling/v1
+</span></span></span><span class=line><span class=cl><span class=go>autoscaling/v2beta1
+</span></span></span><span class=line><span class=cl><span class=go>autoscaling/v2beta2
+</span></span></span><span class=line><span class=cl><span class=go>batch/v1
+</span></span></span><span class=line><span class=cl><span class=go>batch/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>certificates.k8s.io/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>coordination.k8s.io/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>crd.projectcalico.org/v1
+</span></span></span><span class=line><span class=cl><span class=go>events.k8s.io/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>extensions/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>networking.k8s.io/v1
+</span></span></span><span class=line><span class=cl><span class=go>policy/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>rbac.authorization.k8s.io/v1
+</span></span></span><span class=line><span class=cl><span class=go>rbac.authorization.k8s.io/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>scheduling.k8s.io/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>storage.k8s.io/v1
+</span></span></span><span class=line><span class=cl><span class=go>storage.k8s.io/v1beta1
+</span></span></span><span class=line><span class=cl><span class=go>v1
+</span></span></span></code></pre></div><h4 id=api-resources>API resources</h4><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=gp>$</span> kubectl api-resources
+</span></span><span class=line><span class=cl><span class=go>NAME                              SHORTNAMES   APIGROUP                       NAMESPACED   KIND
+</span></span></span><span class=line><span class=cl><span class=go>bindings                                                                      true         Binding
+</span></span></span><span class=line><span class=cl><span class=go>componentstatuses                 cs                                          false        ComponentStatus
+</span></span></span><span class=line><span class=cl><span class=go>configmaps                        cm                                          true         ConfigMap
+</span></span></span><span class=line><span class=cl><span class=go>endpoints                         ep                                          true         Endpoints
+</span></span></span><span class=line><span class=cl><span class=go>events                            ev                                          true         Event
+</span></span></span><span class=line><span class=cl><span class=go>limitranges                       limits                                      true         LimitRange
+</span></span></span><span class=line><span class=cl><span class=go>namespaces                        ns                                          false        Namespace
+</span></span></span><span class=line><span class=cl><span class=go>nodes                             no                                          false        Node
+</span></span></span><span class=line><span class=cl><span class=go>persistentvolumeclaims            pvc                                         true         PersistentVolumeClaim
+</span></span></span><span class=line><span class=cl><span class=go>persistentvolumes                 pv                                          false        PersistentVolume
+</span></span></span><span class=line><span class=cl><span class=go>pods                              po                                          true         Pod
+</span></span></span><span class=line><span class=cl><span class=go>podtemplates                                                                  true         PodTemplate
+</span></span></span><span class=line><span class=cl><span class=go>replicationcontrollers            rc                                          true         ReplicationController
+</span></span></span><span class=line><span class=cl><span class=go>resourcequotas                    quota                                       true         ResourceQuota
+</span></span></span><span class=line><span class=cl><span class=go>secrets                                                                       true         Secret
+</span></span></span><span class=line><span class=cl><span class=go>serviceaccounts                   sa                                          true         ServiceAccount
+</span></span></span><span class=line><span class=cl><span class=go>services                          svc                                         true         Service
+</span></span></span><span class=line><span class=cl><span class=go>mutatingwebhookconfigurations                  admissionregistration.k8s.io   false        MutatingWebhookConfiguration
+</span></span></span><span class=line><span class=cl><span class=go>validatingwebhookconfigurations                admissionregistration.k8s.io   false        ValidatingWebhookConfiguration
+</span></span></span><span class=line><span class=cl><span class=go>customresourcedefinitions         crd,crds     apiextensions.k8s.io           false        CustomResourceDefinition
+</span></span></span><span class=line><span class=cl><span class=go>apiservices                                    apiregistration.k8s.io         false        APIService
+</span></span></span><span class=line><span class=cl><span class=go>controllerrevisions                            apps                           true         ControllerRevision
+</span></span></span><span class=line><span class=cl><span class=go>daemonsets                        ds           apps                           true         DaemonSet
+</span></span></span><span class=line><span class=cl><span class=go>deployments                       deploy       apps                           true         Deployment
+</span></span></span><span class=line><span class=cl><span class=go>replicasets                       rs           apps                           true         ReplicaSet
+</span></span></span><span class=line><span class=cl><span class=go>statefulsets                      sts          apps                           true         StatefulSet
+</span></span></span><span class=line><span class=cl><span class=go>tokenreviews                                   authentication.k8s.io          false        TokenReview
+</span></span></span><span class=line><span class=cl><span class=go>localsubjectaccessreviews                      authorization.k8s.io           true         LocalSubjectAccessReview
+</span></span></span><span class=line><span class=cl><span class=go>selfsubjectaccessreviews                       authorization.k8s.io           false        SelfSubjectAccessReview
+</span></span></span><span class=line><span class=cl><span class=go>selfsubjectrulesreviews                        authorization.k8s.io           false        SelfSubjectRulesReview
+</span></span></span><span class=line><span class=cl><span class=go>subjectaccessreviews                           authorization.k8s.io           false        SubjectAccessReview
+</span></span></span><span class=line><span class=cl><span class=go>horizontalpodautoscalers          hpa          autoscaling                    true         HorizontalPodAutoscaler
+</span></span></span><span class=line><span class=cl><span class=go>cronjobs                          cj           batch                          true         CronJob
+</span></span></span><span class=line><span class=cl><span class=go>jobs                                           batch                          true         Job
+</span></span></span><span class=line><span class=cl><span class=go>certificatesigningrequests        csr          certificates.k8s.io            false        CertificateSigningRequest
+</span></span></span><span class=line><span class=cl><span class=go>leases                                         coordination.k8s.io            true         Lease
+</span></span></span><span class=line><span class=cl><span class=go>bgpconfigurations                              crd.projectcalico.org          false        BGPConfiguration
+</span></span></span><span class=line><span class=cl><span class=go>bgppeers                                       crd.projectcalico.org          false        BGPPeer
+</span></span></span><span class=line><span class=cl><span class=go>clusterinformations                            crd.projectcalico.org          false        ClusterInformation
+</span></span></span><span class=line><span class=cl><span class=go>felixconfigurations                            crd.projectcalico.org          false        FelixConfiguration
+</span></span></span><span class=line><span class=cl><span class=go>globalnetworkpolicies                          crd.projectcalico.org          false        GlobalNetworkPolicy
+</span></span></span><span class=line><span class=cl><span class=go>globalnetworksets                              crd.projectcalico.org          false        GlobalNetworkSet
+</span></span></span><span class=line><span class=cl><span class=go>hostendpoints                                  crd.projectcalico.org          false        HostEndpoint
+</span></span></span><span class=line><span class=cl><span class=go>ippools                                        crd.projectcalico.org          false        IPPool
+</span></span></span><span class=line><span class=cl><span class=go>networkpolicies                                crd.projectcalico.org          true         NetworkPolicy
+</span></span></span><span class=line><span class=cl><span class=go>events                            ev           events.k8s.io                  true         Event
+</span></span></span><span class=line><span class=cl><span class=go>daemonsets                        ds           extensions                     true         DaemonSet
+</span></span></span><span class=line><span class=cl><span class=go>deployments                       deploy       extensions                     true         Deployment
+</span></span></span><span class=line><span class=cl><span class=go>ingresses                         ing          extensions                     true         Ingress
+</span></span></span><span class=line><span class=cl><span class=go>networkpolicies                   netpol       extensions                     true         NetworkPolicy
+</span></span></span><span class=line><span class=cl><span class=go>podsecuritypolicies               psp          extensions                     false        PodSecurityPolicy
+</span></span></span><span class=line><span class=cl><span class=go>replicasets                       rs           extensions                     true         ReplicaSet
+</span></span></span><span class=line><span class=cl><span class=go>networkpolicies                   netpol       networking.k8s.io              true         NetworkPolicy
+</span></span></span><span class=line><span class=cl><span class=go>poddisruptionbudgets              pdb          policy                         true         PodDisruptionBudget
+</span></span></span><span class=line><span class=cl><span class=go>podsecuritypolicies               psp          policy                         false        PodSecurityPolicy
+</span></span></span><span class=line><span class=cl><span class=go>clusterrolebindings                            rbac.authorization.k8s.io      false        ClusterRoleBinding
+</span></span></span><span class=line><span class=cl><span class=go>clusterroles                                   rbac.authorization.k8s.io      false        ClusterRole
+</span></span></span><span class=line><span class=cl><span class=go>rolebindings                                   rbac.authorization.k8s.io      true         RoleBinding
+</span></span></span><span class=line><span class=cl><span class=go>roles                                          rbac.authorization.k8s.io      true         Role
+</span></span></span><span class=line><span class=cl><span class=go>priorityclasses                   pc           scheduling.k8s.io              false        PriorityClass
+</span></span></span><span class=line><span class=cl><span class=go>storageclasses                    sc           storage.k8s.io                 false        StorageClass
+</span></span></span><span class=line><span class=cl><span class=go>volumeattachments                              storage.k8s.io                 false        VolumeAttachment
+</span></span></span></code></pre></div><footer class=footline></footer></article></div></main></div><script src=../../js/clipboard.min.js?1704645243 defer></script><script src=../../js/perfect-scrollbar.min.js?1704645243 defer></script><script src=../../js/theme.js?1704645243 defer></script></body></html>

@@ -1,0 +1,194 @@
+<!doctype html><html lang=en dir=ltr><head><meta charset=utf-8><meta name=viewport content="height=device-height,width=device-width,initial-scale=1,minimum-scale=1"><meta name=generator content="Hugo 0.121.1"><meta name=generator content="Relearn 5.23.2+tip"><meta name=robots content="noindex, nofollow, noarchive, noimageindex"><meta name=description content="Kubernetes pocket gude and more"><meta name=author content="Ansil H"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://kubernetes.ansilh.com/images/hero.png"><meta name=twitter:title content="Send logs via Fluent-bit :: Hugo Relearn Theme"><meta name=twitter:description content="Kubernetes pocket gude and more"><meta property="og:title" content="Send logs via Fluent-bit :: Hugo Relearn Theme"><meta property="og:description" content="Kubernetes pocket gude and more"><meta property="og:type" content="website"><meta property="og:url" content="https://kubernetes.ansilh.com/20-elk_stack/03-fluent-bit/index.html"><meta property="og:image" content="https://kubernetes.ansilh.com/images/hero.png"><meta property="og:site_name" content="Hugo Relearn Theme"><title>Send logs via Fluent-bit :: Hugo Relearn Theme</title>
+<link href=../../images/logo.svg?1704645242 rel=icon type=image/svg+xml><link href=../../css/fontawesome-all.min.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../../css/fontawesome-all.min.css?1704645243 rel=stylesheet></noscript><link href=../../css/nucleus.css?1704645243 rel=stylesheet><link href=../../css/auto-complete.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../../css/auto-complete.css?1704645243 rel=stylesheet></noscript><link href=../../css/perfect-scrollbar.min.css?1704645243 rel=stylesheet><link href=../../css/fonts.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../../css/fonts.css?1704645243 rel=stylesheet></noscript><link href=../../css/theme.css?1704645243 rel=stylesheet><link href=../../css/theme-neon.css?1704645243 rel=stylesheet id=R-variant-style><link href=../../css/chroma-neon.css?1704645243 rel=stylesheet id=R-variant-chroma-style><link href=../../css/variant.css?1704645243 rel=stylesheet><link href=../../css/print.css?1704645243 rel=stylesheet media=print><link href=../../css/format-print.css?1704645243 rel=stylesheet><link href=../../css/ie.css?1704645243 rel=stylesheet><script src=../../js/url.js?1704645243></script><script src=../../js/variant.js?1704645243></script><script>window.index_js_url="../../index.search.js";var root_url="../../",baseUri=root_url.replace(/\/$/,"");window.relearn=window.relearn||{},window.relearn.baseUriFull="https://kubernetes.ansilh.com/",window.relearn.themeVariantModifier="",window.variants&&variants.init(["neon"]),window.T_Copy_to_clipboard=`Copy to clipboard`,window.T_Copied_to_clipboard=`Copied to clipboard!`,window.T_Copy_link_to_clipboard=`Copy link to clipboard`,window.T_Link_copied_to_clipboard=`Copied link to clipboard!`,window.T_Reset_view=`Reset view`,window.T_View_reset=`View reset!`,window.T_No_results_found=`No results found for "{0}"`,window.T_N_results_found=`{1} results found for "{0}"`</script><style>#R-body img.bg-white{background-color:#fff}</style></head><body class="mobile-support print disableInlineCopyToClipboard" data-url=../../20-elk_stack/03-fluent-bit/index.html><div id=R-body class=default-animation><div id=R-body-overlay></div><nav id=R-topbar><div class=topbar-wrapper><div class=topbar-sidebar-divider></div><div class="topbar-area topbar-area-start" data-area=start><div class="topbar-button topbar-button-sidebar" data-content-empty=disable data-width-s=show data-width-m=hide data-width-l=hide><button class=topbar-control onclick=toggleNav() type=button title="Menu (CTRL+ALT+n)"><i class="fa-fw fas fa-bars"></i></button></div></div><ol class="topbar-breadcrumbs breadcrumbs highlightable" itemscope itemtype=http://schema.org/BreadcrumbList><li itemscope itemtype=https://schema.org/ListItem itemprop=itemListElement><a itemprop=item href=../../20-elk_stack/index.html><span itemprop=name>ELK Stack</span></a><meta itemprop=position content="1">&nbsp;>&nbsp;</li><li itemscope itemtype=https://schema.org/ListItem itemprop=itemListElement><span itemprop=name>Send logs via Fluent-bit</span><meta itemprop=position content="2"></li></ol><div class="topbar-area topbar-area-end" data-area=end></div></div></nav><div id=R-main-overlay></div><main id=R-body-inner class="highlightable default" tabindex=-1><div class=flex-block-wrapper><article class=default><header class=headline></header><h1 id=send-logs-via-fluent-bit>Send logs via Fluent-bit</h1><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=l>cat &lt;&lt;EOF &gt;fluent-bit-service-account.yaml</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ServiceAccount</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>kube-logging</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>EOF</span></span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ kubectl create -f fluent-bit-service-account.yaml</span></span></code></pre></div><blockquote><p>Output</p></blockquote><div class="wrap-code highlight"><pre tabindex=0><code>serviceaccount/fluent-bit created</code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=l>cat &lt;&lt;EOF &gt;fluent-bit-role.yaml</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>rbac.authorization.k8s.io/v1beta1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ClusterRole</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit-read</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>rules</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>apiGroups</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;&#34;</span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=l>namespaces</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=l>pods</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>verbs</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>   </span>- <span class=l>get</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>   </span>- <span class=l>list</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>   </span>- <span class=l>watch</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>EOF</span></span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ kubectl create -f fluent-bit-role.yaml</span></span></code></pre></div><blockquote><p>Output</p></blockquote><div class="wrap-code highlight"><pre tabindex=0><code>clusterrole.rbac.authorization.k8s.io/fluent-bit-read created</code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=l>cat &lt;&lt;EOF &gt;fluent-bit-role-binding.yaml</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>rbac.authorization.k8s.io/v1beta1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ClusterRoleBinding</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit-read</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>roleRef</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>apiGroup</span><span class=p>:</span><span class=w> </span><span class=l>rbac.authorization.k8s.io</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ClusterRole</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit-read</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>subjects</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ServiceAccount</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>kube-logging</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>EOF</span></span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ kubectl create -f fluent-bit-role-binding.yaml</span></span></code></pre></div><blockquote><p>Output</p></blockquote><div class="wrap-code highlight"><pre tabindex=0><code>clusterrolebinding.rbac.authorization.k8s.io/fluent-bit-read created</code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=l>cat &lt;&lt;EOF &gt;fluent-bit-configmap.yaml</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ConfigMap</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit-config</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>kube-logging</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>k8s-app</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>data</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c># Configuration files: server, input, filters and output</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c># ======================================================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>fluent-bit.conf</span><span class=p>:</span><span class=w> </span><span class=p>|</span><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>    [SERVICE]
+</span></span></span><span class=line><span class=cl><span class=sd>        Flush         1
+</span></span></span><span class=line><span class=cl><span class=sd>        Log_Level     info
+</span></span></span><span class=line><span class=cl><span class=sd>        Daemon        off
+</span></span></span><span class=line><span class=cl><span class=sd>        Parsers_File  parsers.conf
+</span></span></span><span class=line><span class=cl><span class=sd>        HTTP_Server   On
+</span></span></span><span class=line><span class=cl><span class=sd>        HTTP_Listen   0.0.0.0
+</span></span></span><span class=line><span class=cl><span class=sd>        HTTP_Port     2020
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>    @INCLUDE input-kubernetes.conf
+</span></span></span><span class=line><span class=cl><span class=sd>    @INCLUDE filter-kubernetes.conf
+</span></span></span><span class=line><span class=cl><span class=sd>    @INCLUDE output-elasticsearch.conf</span><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>input-kubernetes.conf</span><span class=p>:</span><span class=w> </span><span class=p>|</span><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>    [INPUT]
+</span></span></span><span class=line><span class=cl><span class=sd>        Name              tail
+</span></span></span><span class=line><span class=cl><span class=sd>        Tag               kube.*
+</span></span></span><span class=line><span class=cl><span class=sd>        Path              /var/log/containers/*.log
+</span></span></span><span class=line><span class=cl><span class=sd>        Parser            docker
+</span></span></span><span class=line><span class=cl><span class=sd>        DB                /var/log/flb_kube.db
+</span></span></span><span class=line><span class=cl><span class=sd>        Mem_Buf_Limit     5MB
+</span></span></span><span class=line><span class=cl><span class=sd>        Skip_Long_Lines   On
+</span></span></span><span class=line><span class=cl><span class=sd>        Refresh_Interval  10</span><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>filter-kubernetes.conf</span><span class=p>:</span><span class=w> </span><span class=p>|</span><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>    [FILTER]
+</span></span></span><span class=line><span class=cl><span class=sd>        Name                kubernetes
+</span></span></span><span class=line><span class=cl><span class=sd>        Match               kube.*
+</span></span></span><span class=line><span class=cl><span class=sd>        Kube_URL            https://kubernetes.default:443
+</span></span></span><span class=line><span class=cl><span class=sd>        Merge_Log           On
+</span></span></span><span class=line><span class=cl><span class=sd>        K8S-Logging.Parser  On</span><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>output-elasticsearch.conf</span><span class=p>:</span><span class=w> </span><span class=p>|</span><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>    [OUTPUT]
+</span></span></span><span class=line><span class=cl><span class=sd>        Name            es
+</span></span></span><span class=line><span class=cl><span class=sd>        Match           *
+</span></span></span><span class=line><span class=cl><span class=sd>        Host            \${FLUENT_ELASTICSEARCH_HOST}
+</span></span></span><span class=line><span class=cl><span class=sd>        Port            \${FLUENT_ELASTICSEARCH_PORT}
+</span></span></span><span class=line><span class=cl><span class=sd>        Logstash_Format On
+</span></span></span><span class=line><span class=cl><span class=sd>        Retry_Limit     False</span><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>parsers.conf</span><span class=p>:</span><span class=w> </span><span class=p>|</span><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>    [PARSER]
+</span></span></span><span class=line><span class=cl><span class=sd>        Name   apache
+</span></span></span><span class=line><span class=cl><span class=sd>        Format regex
+</span></span></span><span class=line><span class=cl><span class=sd>        Regex  ^(?&lt;host&gt;[^ ]*) [^ ]* (?&lt;user&gt;[^ ]*) \[(?&lt;time&gt;[^\]]*)\] &#34;(?&lt;method&gt;\S+)(?: +(?&lt;path&gt;[^\&#34;]*?)(?: +\S*)?)?&#34; (?&lt;code&gt;[^ ]*) (?&lt;size&gt;[^ ]*)(?: &#34;(?&lt;referer&gt;[^\&#34;]*)&#34; &#34;(?&lt;agent&gt;[^\&#34;]*)&#34;)?$
+</span></span></span><span class=line><span class=cl><span class=sd>        Time_Key time
+</span></span></span><span class=line><span class=cl><span class=sd>        Time_Format %d/%b/%Y:%H:%M:%S %z
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>    [PARSER]
+</span></span></span><span class=line><span class=cl><span class=sd>        Name   apache2
+</span></span></span><span class=line><span class=cl><span class=sd>        Format regex
+</span></span></span><span class=line><span class=cl><span class=sd>        Regex  ^(?&lt;host&gt;[^ ]*) [^ ]* (?&lt;user&gt;[^ ]*) \[(?&lt;time&gt;[^\]]*)\] &#34;(?&lt;method&gt;\S+)(?: +(?&lt;path&gt;[^ ]*) +\S*)?&#34; (?&lt;code&gt;[^ ]*) (?&lt;size&gt;[^ ]*)(?: &#34;(?&lt;referer&gt;[^\&#34;]*)&#34; &#34;(?&lt;agent&gt;[^\&#34;]*)&#34;)?$
+</span></span></span><span class=line><span class=cl><span class=sd>        Time_Key time
+</span></span></span><span class=line><span class=cl><span class=sd>        Time_Format %d/%b/%Y:%H:%M:%S %z
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>    [PARSER]
+</span></span></span><span class=line><span class=cl><span class=sd>        Name   apache_error
+</span></span></span><span class=line><span class=cl><span class=sd>        Format regex
+</span></span></span><span class=line><span class=cl><span class=sd>        Regex  ^\[[^ ]* (?&lt;time&gt;[^\]]*)\] \[(?&lt;level&gt;[^\]]*)\](?: \[pid (?&lt;pid&gt;[^\]]*)\])?( \[client (?&lt;client&gt;[^\]]*)\])? (?&lt;message&gt;.*)$
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>    [PARSER]
+</span></span></span><span class=line><span class=cl><span class=sd>        Name   nginx
+</span></span></span><span class=line><span class=cl><span class=sd>        Format regex
+</span></span></span><span class=line><span class=cl><span class=sd>        Regex ^(?&lt;remote&gt;[^ ]*) (?&lt;host&gt;[^ ]*) (?&lt;user&gt;[^ ]*) \[(?&lt;time&gt;[^\]]*)\] &#34;(?&lt;method&gt;\S+)(?: +(?&lt;path&gt;[^\&#34;]*?)(?: +\S*)?)?&#34; (?&lt;code&gt;[^ ]*) (?&lt;size&gt;[^ ]*)(?: &#34;(?&lt;referer&gt;[^\&#34;]*)&#34; &#34;(?&lt;agent&gt;[^\&#34;]*)&#34;)?$
+</span></span></span><span class=line><span class=cl><span class=sd>        Time_Key time
+</span></span></span><span class=line><span class=cl><span class=sd>        Time_Format %d/%b/%Y:%H:%M:%S %z
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>    [PARSER]
+</span></span></span><span class=line><span class=cl><span class=sd>        Name   json
+</span></span></span><span class=line><span class=cl><span class=sd>        Format json
+</span></span></span><span class=line><span class=cl><span class=sd>        Time_Key time
+</span></span></span><span class=line><span class=cl><span class=sd>        Time_Format %d/%b/%Y:%H:%M:%S %z
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>    [PARSER]
+</span></span></span><span class=line><span class=cl><span class=sd>        Name        docker
+</span></span></span><span class=line><span class=cl><span class=sd>        Format      json
+</span></span></span><span class=line><span class=cl><span class=sd>        Time_Key    time
+</span></span></span><span class=line><span class=cl><span class=sd>        Time_Format %Y-%m-%dT%H:%M:%S.%L
+</span></span></span><span class=line><span class=cl><span class=sd>        Time_Keep   On
+</span></span></span><span class=line><span class=cl><span class=sd>        # Command      |  Decoder | Field | Optional Action
+</span></span></span><span class=line><span class=cl><span class=sd>        # =============|==================|=================
+</span></span></span><span class=line><span class=cl><span class=sd>        Decode_Field_As   escaped    log
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>    [PARSER]
+</span></span></span><span class=line><span class=cl><span class=sd>        Name        syslog
+</span></span></span><span class=line><span class=cl><span class=sd>        Format      regex
+</span></span></span><span class=line><span class=cl><span class=sd>        Regex       ^\&lt;(?&lt;pri&gt;[0-9]+)\&gt;(?&lt;time&gt;[^ ]* {1,2}[^ ]* [^ ]*) (?&lt;host&gt;[^ ]*) (?&lt;ident&gt;[a-zA-Z0-9_\/\.\-]*)(?:\[(?&lt;pid&gt;[0-9]+)\])?(?:[^\:]*\:)? *(?&lt;message&gt;.*)$
+</span></span></span><span class=line><span class=cl><span class=sd>        Time_Key    time
+</span></span></span><span class=line><span class=cl><span class=sd>        Time_Format %b %d %H:%M:%S</span><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>EOF</span></span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ kubectl create -f fluent-bit-configmap.yaml</span></span></code></pre></div><blockquote><p>Output</p></blockquote><div class="wrap-code highlight"><pre tabindex=0><code>configmap/fluent-bit-config created</code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=l>cat &lt;&lt;EOF &gt;fluent-bit-ds.yaml</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>extensions/v1beta1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>DaemonSet</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>kube-logging</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>k8s-app</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit-logging</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>kubernetes.io/cluster-service</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;true&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>k8s-app</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit-logging</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>kubernetes.io/cluster-service</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;true&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>annotations</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>prometheus.io/scrape</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;true&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>prometheus.io/port</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;2020&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>prometheus.io/path</span><span class=p>:</span><span class=w> </span><span class=l>/api/v1/metrics/prometheus</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>fluent/fluent-bit:1.0.4</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>imagePullPolicy</span><span class=p>:</span><span class=w> </span><span class=l>Always</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span>- <span class=nt>containerPort</span><span class=p>:</span><span class=w> </span><span class=m>2020</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>env</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>FLUENT_ELASTICSEARCH_HOST</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;elasticsearch&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>FLUENT_ELASTICSEARCH_PORT</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;9200&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>varlog</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/var/log</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>varlibdockercontainers</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/var/lib/docker/containers</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>readOnly</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit-config</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/fluent-bit/etc/</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>terminationGracePeriodSeconds</span><span class=p>:</span><span class=w> </span><span class=m>10</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>varlog</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>hostPath</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/var/log</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>varlibdockercontainers</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>hostPath</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/var/lib/docker/containers</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit-config</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>configMap</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit-config</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>serviceAccountName</span><span class=p>:</span><span class=w> </span><span class=l>fluent-bit</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>tolerations</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>node-role.kubernetes.io/master</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>operator</span><span class=p>:</span><span class=w> </span><span class=l>Exists</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>effect</span><span class=p>:</span><span class=w> </span><span class=l>NoSchedule</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=l>EOF</span></span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ kubectl create -f fluent-bit-ds.yaml</span></span></code></pre></div><blockquote><p>Output</p></blockquote><div class="wrap-code highlight"><pre tabindex=0><code>daemonset.extensions/fluent-bit created</code></pre></div><footer class=footline></footer></article></div></main></div><script src=../../js/clipboard.min.js?1704645243 defer></script><script src=../../js/perfect-scrollbar.min.js?1704645243 defer></script><script src=../../js/theme.js?1704645243 defer></script></body></html>

@@ -1,0 +1,248 @@
+<!doctype html><html lang=en dir=ltr><head><meta charset=utf-8><meta name=viewport content="height=device-height,width=device-width,initial-scale=1,minimum-scale=1"><meta name=generator content="Hugo 0.121.1"><meta name=generator content="Relearn 5.23.2+tip"><meta name=robots content="noindex, nofollow, noarchive, noimageindex"><meta name=description content="Kubernetes pocket gude and more"><meta name=author content="Ansil H"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://kubernetes.ansilh.com/images/hero.png"><meta name=twitter:title content="Client and Server Certificates :: Hugo Relearn Theme"><meta name=twitter:description content="Kubernetes pocket gude and more"><meta property="og:title" content="Client and Server Certificates :: Hugo Relearn Theme"><meta property="og:description" content="Kubernetes pocket gude and more"><meta property="og:type" content="website"><meta property="og:url" content="https://kubernetes.ansilh.com/16-k8s_from_sratch/05-client-and-server-certs/index.html"><meta property="og:image" content="https://kubernetes.ansilh.com/images/hero.png"><meta property="og:site_name" content="Hugo Relearn Theme"><title>Client and Server Certificates :: Hugo Relearn Theme</title>
+<link href=../../images/logo.svg?1704645242 rel=icon type=image/svg+xml><link href=../../css/fontawesome-all.min.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../../css/fontawesome-all.min.css?1704645243 rel=stylesheet></noscript><link href=../../css/nucleus.css?1704645243 rel=stylesheet><link href=../../css/auto-complete.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../../css/auto-complete.css?1704645243 rel=stylesheet></noscript><link href=../../css/perfect-scrollbar.min.css?1704645243 rel=stylesheet><link href=../../css/fonts.css?1704645243 rel=stylesheet media=print onload='this.media="all",this.onload=null'><noscript><link href=../../css/fonts.css?1704645243 rel=stylesheet></noscript><link href=../../css/theme.css?1704645243 rel=stylesheet><link href=../../css/theme-neon.css?1704645243 rel=stylesheet id=R-variant-style><link href=../../css/chroma-neon.css?1704645243 rel=stylesheet id=R-variant-chroma-style><link href=../../css/variant.css?1704645243 rel=stylesheet><link href=../../css/print.css?1704645243 rel=stylesheet media=print><link href=../../css/format-print.css?1704645243 rel=stylesheet><link href=../../css/ie.css?1704645243 rel=stylesheet><script src=../../js/url.js?1704645243></script><script src=../../js/variant.js?1704645243></script><script>window.index_js_url="../../index.search.js";var root_url="../../",baseUri=root_url.replace(/\/$/,"");window.relearn=window.relearn||{},window.relearn.baseUriFull="https://kubernetes.ansilh.com/",window.relearn.themeVariantModifier="",window.variants&&variants.init(["neon"]),window.T_Copy_to_clipboard=`Copy to clipboard`,window.T_Copied_to_clipboard=`Copied to clipboard!`,window.T_Copy_link_to_clipboard=`Copy link to clipboard`,window.T_Link_copied_to_clipboard=`Copied link to clipboard!`,window.T_Reset_view=`Reset view`,window.T_View_reset=`View reset!`,window.T_No_results_found=`No results found for "{0}"`,window.T_N_results_found=`{1} results found for "{0}"`</script><style>#R-body img.bg-white{background-color:#fff}</style></head><body class="mobile-support print disableInlineCopyToClipboard" data-url=../../16-k8s_from_sratch/05-client-and-server-certs/index.html><div id=R-body class=default-animation><div id=R-body-overlay></div><nav id=R-topbar><div class=topbar-wrapper><div class=topbar-sidebar-divider></div><div class="topbar-area topbar-area-start" data-area=start><div class="topbar-button topbar-button-sidebar" data-content-empty=disable data-width-s=show data-width-m=hide data-width-l=hide><button class=topbar-control onclick=toggleNav() type=button title="Menu (CTRL+ALT+n)"><i class="fa-fw fas fa-bars"></i></button></div></div><ol class="topbar-breadcrumbs breadcrumbs highlightable" itemscope itemtype=http://schema.org/BreadcrumbList><li itemscope itemtype=https://schema.org/ListItem itemprop=itemListElement><a itemprop=item href=../../16-k8s_from_sratch/index.html><span itemprop=name>K8S From Scratch</span></a><meta itemprop=position content="1">&nbsp;>&nbsp;</li><li itemscope itemtype=https://schema.org/ListItem itemprop=itemListElement><span itemprop=name>Client and Server Certificates</span><meta itemprop=position content="2"></li></ol><div class="topbar-area topbar-area-end" data-area=end></div></div></nav><div id=R-main-overlay></div><main id=R-body-inner class="highlightable default" tabindex=-1><div class=flex-block-wrapper><article class=default><header class=headline></header><h1 id=client-and-server-certificates>Client and Server Certificates</h1><p>In this section you will generate client and server certificates for each Kubernetes component and a client certificate for
+the Kubernetes admin user.</p><h3 id=the-admin-client-certificate-this-will-be-used-for-kubectl-command>The Admin Client Certificate (This will be used for <code>kubectl</code> command)</h3><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=o>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>cat &gt; admin-csr.json <span class=s>&lt;&lt;EOF
+</span></span></span><span class=line><span class=cl><span class=s>{
+</span></span></span><span class=line><span class=cl><span class=s>  &#34;CN&#34;: &#34;admin&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>  &#34;key&#34;: {
+</span></span></span><span class=line><span class=cl><span class=s>    &#34;algo&#34;: &#34;rsa&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>    &#34;size&#34;: 2048
+</span></span></span><span class=line><span class=cl><span class=s>  },
+</span></span></span><span class=line><span class=cl><span class=s>  &#34;names&#34;: [
+</span></span></span><span class=line><span class=cl><span class=s>    {
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;C&#34;: &#34;IN&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;L&#34;: &#34;Bangalore&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;O&#34;: &#34;system:masters&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;OU&#34;: &#34;Kubernetes from Scratch&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;ST&#34;: &#34;Karnataka&#34;
+</span></span></span><span class=line><span class=cl><span class=s>    }
+</span></span></span><span class=line><span class=cl><span class=s>  ]
+</span></span></span><span class=line><span class=cl><span class=s>}
+</span></span></span><span class=line><span class=cl><span class=s>EOF</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ cfssl gencert <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -ca<span class=o>=</span>ca.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -ca-key<span class=o>=</span>ca-key.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -config<span class=o>=</span>ca-config.json <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -profile<span class=o>=</span>kubernetes <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  admin-csr.json <span class=p>|</span> cfssljson -bare admin
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>}</span></span></span></code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=go>admin-key.pem
+</span></span></span><span class=line><span class=cl><span class=go>admin.pem
+</span></span></span></code></pre></div><h3 id=the-kubelet-client-certificates>The Kubelet Client Certificates</h3><p>Kubernetes uses a <a href=https://kubernetes.io/docs/admin/authorization/node/ target=_blank>special-purpose authorization mode</a> called Node Authorizer, that specifically authorizes API requests made by <a href=https://kubernetes.io/docs/concepts/overview/components/#kubelet target=_blank>Kubelets</a>. In order to be authorized by the Node Authorizer, Kubelets must use a credential that identifies them as being in the <code>system:nodes</code> group, with a username of <code>system:node:&lt;nodeName></code>. In this section you will create a certificate for each Kubernetes worker node that meets the Node Authorizer requirements.</p><p>Generate a certificate and private key for each Kubernetes worker node:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=k>for</span> instance in <span class=k>$(</span>cat /etc/hosts<span class=p>|</span> grep k8s <span class=p>|</span>awk <span class=s1>&#39;{print $2}&#39;</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>cat &gt; <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>-csr.json <span class=s>&lt;&lt;EOF
+</span></span></span><span class=line><span class=cl><span class=s>{
+</span></span></span><span class=line><span class=cl><span class=s>  &#34;CN&#34;: &#34;system:node:${instance}&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>  &#34;key&#34;: {
+</span></span></span><span class=line><span class=cl><span class=s>    &#34;algo&#34;: &#34;rsa&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>    &#34;size&#34;: 2048
+</span></span></span><span class=line><span class=cl><span class=s>  },
+</span></span></span><span class=line><span class=cl><span class=s>  &#34;names&#34;: [
+</span></span></span><span class=line><span class=cl><span class=s>    {
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;C&#34;: &#34;IN&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;L&#34;: &#34;Bangalore&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;O&#34;: &#34;system:masters&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;OU&#34;: &#34;Kubernetes from Scratch&#34;,
+</span></span></span><span class=line><span class=cl><span class=s>      &#34;ST&#34;: &#34;Karnataka&#34;
+</span></span></span><span class=line><span class=cl><span class=s>    }
+</span></span></span><span class=line><span class=cl><span class=s>  ]
+</span></span></span><span class=line><span class=cl><span class=s>}
+</span></span></span><span class=line><span class=cl><span class=s>EOF</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>cfssl gencert <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -ca<span class=o>=</span>ca.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -ca-key<span class=o>=</span>ca-key.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -config<span class=o>=</span>ca-config.json <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -hostname<span class=o>=</span><span class=si>${</span><span class=nv>instance</span><span class=si>}</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -profile<span class=o>=</span>kubernetes <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>-csr.json <span class=p>|</span> cfssljson -bare <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>
+</span></span><span class=line><span class=cl><span class=k>done</span></span></span></code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt k8s*
+-rw-rw-r-- 1 k8s k8s  268 Feb  2 16:54 k8s-master-ah-01-csr.json
+-rw-rw-r-- 1 k8s k8s  268 Feb  2 16:54 k8s-worker-ah-01-csr.json
+-rw-rw-r-- 1 k8s k8s 1513 Feb  2 16:54 k8s-master-ah-01.pem
+-rw------- 1 k8s k8s 1679 Feb  2 16:54 k8s-master-ah-01-key.pem
+-rw-r--r-- 1 k8s k8s 1082 Feb  2 16:54 k8s-master-ah-01.csr
+-rw-rw-r-- 1 k8s k8s 1513 Feb  2 16:54 k8s-worker-ah-01.pem
+-rw------- 1 k8s k8s 1679 Feb  2 16:54 k8s-worker-ah-01-key.pem
+-rw-r--r-- 1 k8s k8s 1082 Feb  2 16:54 k8s-worker-ah-01.csr
+-rw-rw-r-- 1 k8s k8s  268 Feb  2 16:54 k8s-worker-ah-02-csr.json
+-rw-rw-r-- 1 k8s k8s  268 Feb  2 16:54 k8s-worker-ah-03-csr.json
+-rw-rw-r-- 1 k8s k8s 1513 Feb  2 16:54 k8s-worker-ah-02.pem
+-rw------- 1 k8s k8s 1679 Feb  2 16:54 k8s-worker-ah-02-key.pem
+-rw-r--r-- 1 k8s k8s 1082 Feb  2 16:54 k8s-worker-ah-02.csr
+-rw-rw-r-- 1 k8s k8s 1513 Feb  2 16:54 k8s-worker-ah-03.pem
+-rw------- 1 k8s k8s 1675 Feb  2 16:54 k8s-worker-ah-03-key.pem
+-rw-r--r-- 1 k8s k8s 1082 Feb  2 16:54 k8s-worker-ah-03.csr</code></pre></div><h3 id=the-controller-manager-client-certificate>The Controller Manager Client Certificate</h3><p>Generate the <code>kube-controller-manager</code> client certificate and private key:</p><div class="wrap-code highlight"><pre tabindex=0><code>{
+
+cat &gt; kube-controller-manager-csr.json &lt;&lt;EOF
+{
+  &#34;CN&#34;: &#34;system:kube-controller-manager&#34;,
+  &#34;key&#34;: {
+    &#34;algo&#34;: &#34;rsa&#34;,
+    &#34;size&#34;: 2048
+  },
+  &#34;names&#34;: [
+    {
+      &#34;C&#34;: &#34;IN&#34;,
+      &#34;L&#34;: &#34;Bangalore&#34;,
+      &#34;O&#34;: &#34;system:masters&#34;,
+      &#34;OU&#34;: &#34;Kubernetes from Scratch&#34;,
+      &#34;ST&#34;: &#34;Karnataka&#34;
+    }
+  ]
+}
+EOF
+
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  kube-controller-manager-csr.json | cfssljson -bare kube-controller-manager
+
+}</code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt kube-controller*
+-rw-rw-r-- 1 k8s k8s  270 Feb  2 16:55 kube-controller-manager-csr.json
+-rw-rw-r-- 1 k8s k8s 1472 Feb  2 16:55 kube-controller-manager.pem
+-rw------- 1 k8s k8s 1675 Feb  2 16:55 kube-controller-manager-key.pem
+-rw-r--r-- 1 k8s k8s 1086 Feb  2 16:55 kube-controller-manager.csr</code></pre></div><h3 id=the-kube-proxy-client-certificate>The Kube Proxy Client Certificate</h3><p>Generate the <code>kube-proxy</code> client certificate and private key:</p><div class="wrap-code highlight"><pre tabindex=0><code>{
+
+cat &gt; kube-proxy-csr.json &lt;&lt;EOF
+{
+  &#34;CN&#34;: &#34;system:kube-proxy&#34;,
+  &#34;key&#34;: {
+    &#34;algo&#34;: &#34;rsa&#34;,
+    &#34;size&#34;: 2048
+  },
+  &#34;names&#34;: [
+    {
+      &#34;C&#34;: &#34;IN&#34;,
+      &#34;L&#34;: &#34;Bangalore&#34;,
+      &#34;O&#34;: &#34;system:masters&#34;,
+      &#34;OU&#34;: &#34;Kubernetes from Scratch&#34;,
+      &#34;ST&#34;: &#34;Karnataka&#34;
+    }
+  ]
+}
+EOF
+
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  kube-proxy-csr.json | cfssljson -bare kube-proxy
+
+}</code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt kube-proxy*
+-rw-rw-r-- 1 k8s k8s  257 Feb  2 16:55 kube-proxy-csr.json
+-rw-rw-r-- 1 k8s k8s 1456 Feb  2 16:55 kube-proxy.pem
+-rw------- 1 k8s k8s 1675 Feb  2 16:55 kube-proxy-key.pem
+-rw-r--r-- 1 k8s k8s 1070 Feb  2 16:55 kube-proxy.csr</code></pre></div><h3 id=the-scheduler-client-certificate>The Scheduler Client Certificate</h3><p>Generate the <code>kube-scheduler</code> client certificate and private key:</p><div class="wrap-code highlight"><pre tabindex=0><code>{
+
+cat &gt; kube-scheduler-csr.json &lt;&lt;EOF
+{
+  &#34;CN&#34;: &#34;system:kube-scheduler&#34;,
+  &#34;key&#34;: {
+    &#34;algo&#34;: &#34;rsa&#34;,
+    &#34;size&#34;: 2048
+  },
+  &#34;names&#34;: [
+    {
+      &#34;C&#34;: &#34;IN&#34;,
+      &#34;L&#34;: &#34;Bangalore&#34;,
+      &#34;O&#34;: &#34;system:masters&#34;,
+      &#34;OU&#34;: &#34;Kubernetes from Scratch&#34;,
+      &#34;ST&#34;: &#34;Karnataka&#34;
+    }
+  ]
+}
+EOF
+
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  kube-scheduler-csr.json | cfssljson -bare kube-scheduler
+
+}</code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt kube-scheduler*
+-rw-rw-r-- 1 k8s k8s  261 Feb  2 16:56 kube-scheduler-csr.json
+-rw-rw-r-- 1 k8s k8s 1460 Feb  2 16:56 kube-scheduler.pem
+-rw------- 1 k8s k8s 1679 Feb  2 16:56 kube-scheduler-key.pem
+-rw-r--r-- 1 k8s k8s 1074 Feb  2 16:56 kube-scheduler.csr</code></pre></div><h3 id=the-kubernetes-api-server-certificate>The Kubernetes API Server Certificate</h3><p>IP address will be included in the list of subject alternative names for the Kubernetes API Server certificate. This will ensure the certificate can be validated by remote clients.</p><p>Generate the Kubernetes API Server certificate and private key:</p><div class="wrap-code highlight"><pre tabindex=0><code>{
+
+KUBERNETES_ADDRESS=&#34;$(grep k8s /etc/hosts |awk &#39;{print $1}&#39; | sed &#39;:a;N;$!ba;s/\n/,/g&#39;),172.168.0.1&#34;
+
+cat &gt; kubernetes-csr.json &lt;&lt;EOF
+{
+  &#34;CN&#34;: &#34;kubernetes&#34;,
+  &#34;key&#34;: {
+    &#34;algo&#34;: &#34;rsa&#34;,
+    &#34;size&#34;: 2048
+  },
+  &#34;names&#34;: [
+    {
+      &#34;C&#34;: &#34;IN&#34;,
+      &#34;L&#34;: &#34;Bangalore&#34;,
+      &#34;O&#34;: &#34;system:masters&#34;,
+      &#34;OU&#34;: &#34;Kubernetes from Scratch&#34;,
+      &#34;ST&#34;: &#34;Karnataka&#34;
+    }
+  ]
+}
+EOF
+
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -hostname=${KUBERNETES_ADDRESS},127.0.0.1,kubernetes.default \
+  -profile=kubernetes \
+  kubernetes-csr.json | cfssljson -bare kubernetes
+
+}</code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt kubernetes*
+-rw-rw-r-- 1 k8s k8s  240 Feb  2 17:01 kubernetes-csr.json
+-rw-rw-r-- 1 k8s k8s 1501 Feb  2 17:01 kubernetes.pem
+-rw------- 1 k8s k8s 1675 Feb  2 17:01 kubernetes-key.pem
+-rw-r--r-- 1 k8s k8s 1045 Feb  2 17:01 kubernetes.csr</code></pre></div><h2 id=the-service-account-key-pair>The Service Account Key Pair</h2><p>The Kubernetes Controller Manager leverages a key pair to generate and sign service account tokens as describe in the <a href=https://kubernetes.io/docs/admin/service-accounts-admin/ target=_blank>managing service accounts</a> documentation.</p><p>Generate the <code>service-account</code> certificate and private key:</p><div class="wrap-code highlight"><pre tabindex=0><code>{
+
+cat &gt; service-account-csr.json &lt;&lt;EOF
+{
+  &#34;CN&#34;: &#34;service-accounts&#34;,
+  &#34;key&#34;: {
+    &#34;algo&#34;: &#34;rsa&#34;,
+    &#34;size&#34;: 2048
+  },
+  &#34;names&#34;: [
+    {
+      &#34;C&#34;: &#34;IN&#34;,
+      &#34;L&#34;: &#34;Bangalore&#34;,
+      &#34;O&#34;: &#34;system:masters&#34;,
+      &#34;OU&#34;: &#34;Kubernetes from Scratch&#34;,
+      &#34;ST&#34;: &#34;Karnataka&#34;
+    }
+  ]
+}
+EOF
+
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  service-account-csr.json | cfssljson -bare service-account
+
+}</code></pre></div><p>Results:</p><div class="wrap-code highlight"><pre tabindex=0><code>$ ls -lrt service-account*
+-rw-rw-r-- 1 k8s k8s  246 Feb  2 17:02 service-account-csr.json
+-rw-rw-r-- 1 k8s k8s 1440 Feb  2 17:02 service-account.pem
+-rw------- 1 k8s k8s 1679 Feb  2 17:02 service-account-key.pem
+-rw-r--r-- 1 k8s k8s 1054 Feb  2 17:02 service-account.csr</code></pre></div><h2 id=distribute-the-client-and-server-certificates>Distribute the Client and Server Certificates</h2><p>Enable SSH key authentication from master node to all worker nodes to transfer files.</p><ul><li>Generate a key</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ ssh-keygen</span></span></code></pre></div><ul><li>Copy key to remote systems</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=k>for</span> instance in <span class=k>$(</span>grep k8s /etc/hosts <span class=p>|</span>awk <span class=s1>&#39;{print $2}&#39;</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span> <span class=o>(</span>ssh-copy-id <span class=si>${</span><span class=nv>instance</span><span class=si>}</span><span class=o>)</span><span class=p>;</span> <span class=k>done</span></span></span></code></pre></div><ul><li>Copy the appropriate certificates and private keys to each worker instance:</li></ul><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=k>for</span> instance in <span class=k>$(</span>grep k8s /etc/hosts <span class=p>|</span>awk <span class=s1>&#39;{print $2}&#39;</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>  scp kubernetes-key.pem kubernetes.pem ca.pem <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>-key.pem <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>.pem <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>:~/
+</span></span><span class=line><span class=cl><span class=k>done</span></span></span></code></pre></div><p>Copy the appropriate certificates and private keys to each controller instance:</p><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=k>for</span> instance in <span class=k>$(</span>grep master /etc/hosts <span class=p>|</span>awk <span class=s1>&#39;{print $2}&#39;</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>  scp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    service-account-key.pem service-account.pem <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>:~/
+</span></span><span class=line><span class=cl><span class=k>done</span></span></span></code></pre></div><div class="wrap-code highlight"><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>$ <span class=k>for</span> instance in <span class=k>$(</span>grep k8s /etc/hosts <span class=p>|</span>awk <span class=s1>&#39;{print $2}&#39;</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>  scp /etc/hosts <span class=si>${</span><span class=nv>instance</span><span class=si>}</span>:~/
+</span></span><span class=line><span class=cl><span class=k>done</span></span></span></code></pre></div><blockquote><p>The <code>kube-proxy</code>, <code>kube-controller-manager</code>, <code>kube-scheduler</code>, and <code>kubelet</code> client certificates will be used to generate client authentication configuration files in the next lab.</p></blockquote><footer class=footline></footer></article></div></main></div><script src=../../js/clipboard.min.js?1704645243 defer></script><script src=../../js/perfect-scrollbar.min.js?1704645243 defer></script><script src=../../js/theme.js?1704645243 defer></script></body></html>
